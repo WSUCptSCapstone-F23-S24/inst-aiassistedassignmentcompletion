@@ -2,6 +2,18 @@
 
 ## Team Name: INSTACODE
 
+## Table of Contents:
+
+1. Introduction
+2. Team Members
+3. Class Information
+4. Abstract and Motivation
+5. Project Overview
+6. Research Methodology
+7. Expected Outcomes
+8. Conclusion
+9. Acknowledgments
+10. References
 
 ## Team Members:
 - Kumar, Ayush
@@ -46,18 +58,7 @@ Through this project, we aim to achieve the following objectives:
 
 By the conclusion of this project, we hope to contribute to the ongoing discussion about the role of AI in education and its potential to enhance the learning experience for students pursuing computer science and related fields. Our findings will be documented, analyzed, and shared with the academic community to encourage further research in this exciting area.
 
-## Table of Contents:
 
-1. Introduction
-2. Team Members
-3. Class Information
-4. Abstract and Motivation
-5. Project Overview
-6. Research Methodology
-7. Expected Outcomes
-8. Conclusion
-9. Acknowledgments
-10. References
 
 #
 
