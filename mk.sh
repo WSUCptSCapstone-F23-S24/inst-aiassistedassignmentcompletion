@@ -4,11 +4,11 @@
 rm -f parser parser.l.c parser.y.c parser.y.h
 
 # Compile Flex and Bison files
-flex -o parser.y parser.l
-bison -d -o parser.y parser.l
+flex -o parser.l parser.l
+bison -d -o parser.y parser.y
 
 # Compile the C- scanner
-gcc -o parser parser.y parser.l -ll -ly
+gcc -o parser parser.l parser.y -ll -ly
 
 # Check for compilation success
 if [ $? -eq 0 ]; then
