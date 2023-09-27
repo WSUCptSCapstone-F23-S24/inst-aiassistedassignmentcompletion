@@ -17,7 +17,7 @@ struct TokenData {
     char tokenstr;   // Actual string read
     char cvalue;      // Character value
     int nvalue;       // Numeric value or Boolean value
-    charsvalue;     // String value, e.g., an identifier
+    char * svalue;     // String value, e.g., an identifier
 };
 
 #endif
