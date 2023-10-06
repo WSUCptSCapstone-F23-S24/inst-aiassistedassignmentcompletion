@@ -1,6 +1,13 @@
 #ifndef _SCANTYPE_H_
 #define _SCANTYPE_H_
 
+enum {
+    NUM = 258,
+    BOOLCONST,
+    CHAR,
+    ID
+};
+
 struct TokenData {
     int tokenclass;
     int linenum;
@@ -8,13 +15,6 @@ struct TokenData {
     char cvalue;
     int nvalue;
     char* svalue;
-};
-
-enum {
-    NUM,
-    BOOLCONST,
-    CHAR,
-    ID
 };
 
 #endif
