@@ -1,4 +1,5 @@
 %{
+#include "parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,7 @@ extern int yylval_int;
 extern char yylval_char;
 extern char* yylval_str;
 extern int linenum;
+extern FILE* yyin;
 
 int yylex();
 %}
