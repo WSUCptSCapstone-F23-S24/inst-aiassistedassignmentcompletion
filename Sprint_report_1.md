@@ -1,5 +1,5 @@
 # Sprint 1 Report (8/21/2023 - 10/5/2023)
-
+# Sprint Video [Link](https://www.youtube.com/watch?v=yz-D5rAdPVk)
 ## What's New (User Facing)
 ### AI Team
 An AI-Assistance report has been developed and is currently being used for analyzing ChatGPT's involvement in developing the first Homework assignment. Working on the assignment with the assistance of ChatGPT has been challenging so far.
