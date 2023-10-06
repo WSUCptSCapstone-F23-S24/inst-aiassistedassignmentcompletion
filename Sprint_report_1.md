@@ -25,8 +25,6 @@ We will continue to collaborate and explore various solutions to resolve these p
 
 ## Completed Issues/User Stories
 ### AI Team
-
-### Non-AI Team
 Reminders (Remove this section when you save the file):
 * Each issue should be assigned to a milestone
 * Each completed issue should be assigned to a pull request
@@ -34,6 +32,24 @@ Reminders (Remove this section when you save the file):
 * All team members who contributed to the issue should be assigned to it on GitHub
 * Each issue should be assigned story points using a label
 * Story points contribution of each team member should be indicated in a comment
+
+### Non-AI Team
+1. **Create Makefile** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/3)
+   - Assigned to: Adam Karaki
+   - Story Points: 3
+   - Description: Developed a Makefile to streamline the project's build process. This Makefile defines compilation rules and dependencies, making it easier for the team to build the project consistently.
+
+2. **Build Bison Parser** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/2)
+   - Assigned to: Adam Karaki
+   - Story Points: 5
+   - Description: Successfully built the Bison parser for the C- language as part of Homework Assignment 1. The parser is now capable of recognizing and processing C- language constructs, a crucial step in completing the assignment.
+
+3. **Implement Flex Scanner** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/1)
+   - Assigned to: Evan Smith
+   - Story Points: 4
+   - Description: Completed the implementation of the Flex scanner for the C- language. The scanner is now capable of tokenizing input source code, providing essential input to the Bison parser. This work represents a significant milestone in the assignment's progress. 
+
+Each of these tasks has been successfully completed, contributing to the overall advancement of Homework Assignment 1 and our project's objectives.
 
 ## Incomplete Issues/User Stories
 ### AI Team
