@@ -2,14 +2,16 @@
 
 ## What's New (User Facing)
 ### AI Team
-
+An AI-Assistance report has been developed and is currently being used for analyzing ChatGPT's involvement in developing the first Homework assignment. Working on the assignment with the assistance of ChatGPT has been challenging so far.
 ### Non-AI Team
 
 Production has been started on Homework assignment 1, which involves creating a parser for the C- language using Flex and Bison. We learned a lot about comiplers and C- given we have never worked with either.
 
 ## Work Summary (Developer Facing)
 ### AI Team
+We have started developing the first homework assignment with the assistance of ChatGPT version 3.5. It has assisted in the development of a Flex and Bison scanner/parser. ChatGPT currently faces issues with understanding the assignments problems. It is attempting to solve problems, but is failing to properly address all the errors.
 
+ChatGPT sometimes struggles with understanding C- code. With preliminary testing, we found that it does not have a good understanding of C- code. As we continue to develop, it seems that it is starting to understand what it is needing to do. However, it still has significant problems which are being addressed as we continue to develop the project.
 ### Non-AI Team
 We have begun working on the first homework assignment. This assignment has us creating a parser for the C- language using Flex and Bison. We have run into struggles as we do not have access to any of the previous lecture videos. As Flex and Bison are not as frequently used as many other CS topics, searching for answers to our questions has also become difficult.
 
@@ -18,7 +20,8 @@ One of the primary obstacles we have encountered is the unavailability of previo
 
 ## Unfinished Work
 ### AI Team
-
+We have made some progress on implementing Homework 1. Fixing the AI's code has proven challenging, but we have been making progress in doing so. Currently we are being held back by ChatGPT's ability to handle the errors. It struggles to identify the real issue causing the errors in the code it provided even with directions. 
+Even with these challenges, the rate of progress has continued to improve, and we believe it will become easier as the prompts continue.
 ### Non-AI Team
 While we have made progress on the parser, there are still some unresolved issues related to specific rules and characters within the C- language. We have identified the lines of code that are causing errors and have marked them for further investigation and resolution. However, we are currently facing difficulties in determining the appropriate strategies to address these issues effectively.
 
@@ -26,14 +29,7 @@ We will continue to collaborate and explore various solutions to resolve these p
 
 ## Completed Issues/User Stories
 ### AI Team
-Reminders (Remove this section when you save the file):
-* Each issue should be assigned to a milestone
-* Each completed issue should be assigned to a pull request
-* Each completed pull request should include a link to a "Before and After" video
-* All team members who contributed to the issue should be assigned to it on GitHub
-* Each issue should be assigned story points using a label
-* Story points contribution of each team member should be indicated in a comment
-
+All Issues are under development pending consistent change due to AI involvement.
 ### Non-AI Team
 1. **Create Makefile** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/3)
    - Assigned to: Adam Karaki
@@ -54,7 +50,22 @@ Each of these tasks has been successfully completed, contributing to the overall
 
 ## Incomplete Issues/User Stories
 ### AI Team
-
+1. **Fix scanType.h** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/6)
+   - Assigned to: Cameron Kinney
+   - Story Points: 1
+   - Description: The scanType enum declaration conflicts with other defined/declared variables. Prompt the AI for fixes and adapt.
+2. **The Bison Part** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/7)
+   - Assigned to: Ayush Kumar
+   - Story Points: 3
+   - Description: Modify the Bison Part once the AI completes the error fixing implementation.
+3. **The Flex Part** (Milestone: Sprint 1) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/8)
+   - Assigned to: Cameron Kinney
+   - Story Points: 3
+   - Description: Ensure warnings were properly fixed with the updated token handling.
+4. **Build and Test** (Milestone: Sprint 2) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/9)
+    - Assigned to: Ayush Kumar & Cameron Kinney 
+    - Story Points: 1
+    - Description: Implement test functions and validate all test cases.
 ### Non-AI Team
 Here are links to issues we worked on but did not complete in this sprint:
 
@@ -71,6 +82,11 @@ Here are links to issues we worked on but did not complete in this sprint:
 
 ## Code Files for Review
 ### AI Team
+Please review the following code files, which were actively developed during this sprint, for quality:
+* [makefile](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/makefile)
+* [parser.l](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/parser.l)
+* [parser.y](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/parser.y)
+* [scanType.h](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/scanType.h)
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
@@ -82,21 +98,19 @@ Please review the following code files, which were actively developed during thi
 ## Retrospective Summary
 ### AI Team
 Here's what went well:
-* Item 1
-* Item 2
-* Item x
+- **Development of AI Statistics Report:** We developed a report sheet which describes each interaction with the AI in depth for all users/developers to reference when needed during reviews. It allows us to keep a consistent log of when the AI is beneficial and not beneficial.
+- **Development of HW1 with AI Involvement:** Although the process has proven difficult, the interactions with the AI have improved since the beginning stages of the project. We are learning to receive more valuable and appropriate responses as we ask the AI more questions.
+- **Analysis of the AI responses:** Even with the AI giving insufficient fixes or responses, we are mostly understanding where it is failing.
 
 Here's what we'd like to improve:
-* Item 1
-* Item 2
-* Item x
+- **Issue Tracking:** Our issue tracking is lacking due to the way we have been developing with the AI. We are looking at better ways of handling issue tracking in regards to the AI performing significant assignment-wide changes.
+- **AI Error Handling:** Currently with the AI producing code riddled with errors, we are aiming to improve how we can break down the assignment portions across dialogues while preserving integrity of the assignments and chats.
+- **Overall Efficiency:** The process of handing the AI the prompt, analyzing the response, implementing, and re-analyzing is slow. We are reevaluating our process to produce an efficient product.
 
 Here are changes we plan to implement in the next sprint:
-* Finishing of non-AI's C- parser
-* Begining and finishing of Assignment 2 for non-AI.
-* Item x
-
-
+- **Finishing HW1-AI: The Scanner:** This is our most important task. We will tackle all current open issues and update them as we complete portions.
+- **Finishing HW2-AI: The Parser:** We plan to be finished with the second AI assisted assignment by the next sprint.
+- **Beginning/Completing HW3-AI: Semantic Analysis and Typing:** We plan to be partially through HW3 by the end of the next sprint. We are aiming to finish the semantic analysis and typing by the end of the sprint since we believe the development process will significantly improve as development continues.
 ### Non-AI Team
 
 What Went Well:
