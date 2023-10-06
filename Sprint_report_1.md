@@ -4,7 +4,7 @@
 ### AI Team
 
 ### Non-AI Team
-* Production has been started on Homework assignment 1
+* Production has been started on Homework assignment 1, which involves creating a parser for the C- language using Flex and Bison. We learned a lot about comiplers and C- given we have never worked with either.
 
 ## Work Summary (Developer Facing)
 ### AI Team
@@ -12,11 +12,16 @@
 ### Non-AI Team
 We have begun working on the first homework assignment. This assignment has us creating a parser for the C- language using Flex and Bison. We have run into struggles as we do not have access to any of the previous lecture videos. As Flex and Bison are not as frequently used as many other CS topics, searching for answers to our questions has also become difficult.
 
+One of the primary obstacles we have encountered is the unavailability of previous lecture videos that could have provided valuable insights and guidance for this specific task. As Flex and Bison are not as commonly used as some other topics in computer science, finding relevant resources and solutions to our questions has proven to be difficult. Nevertheless, we remain committed to overcoming these challenges and completing the assignment successfully.
+
+
 ## Unfinished Work
 ### AI Team
 
 ### Non-AI Team
-While we have begun the work on the parser, their are a few rules and characters that we have not been able to fix in the parser. We have the lines that give errors marked and set for addressing, though we are facing some troubles in figuring out how to address them.
+While we have made progress on the parser, there are still some unresolved issues related to specific rules and characters within the C- language. We have identified the lines of code that are causing errors and have marked them for further investigation and resolution. However, we are currently facing difficulties in determining the appropriate strategies to address these issues effectively.
+
+We will continue to collaborate and explore various solutions to resolve these problems and ensure the parser functions correctly.
 
 ## Completed Issues/User Stories
 ### AI Team
