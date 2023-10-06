@@ -4,7 +4,8 @@
 ### AI Team
 
 ### Non-AI Team
-* Production has been started on Homework assignment 1, which involves creating a parser for the C- language using Flex and Bison. We learned a lot about comiplers and C- given we have never worked with either.
+
+Production has been started on Homework assignment 1, which involves creating a parser for the C- language using Flex and Bison. We learned a lot about comiplers and C- given we have never worked with either.
 
 ## Work Summary (Developer Facing)
 ### AI Team
