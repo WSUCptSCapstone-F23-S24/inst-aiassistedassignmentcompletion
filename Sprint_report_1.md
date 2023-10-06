@@ -73,10 +73,10 @@ Here are links to issues we worked on but did not complete in this sprint:
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
-* [parser.l] https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/parser.l
-* [parser.y] https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/parser.y
-* [mk.sh] https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/mk.sh
-* [header.h] https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/header.h
+* [parser.l](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/parser.l)
+* [parser.y](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/parser.y)
+* [mk.sh](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/mk.sh)
+* [header.h](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/header.h)
 
 ## Retrospective Summary
 ### AI Team
