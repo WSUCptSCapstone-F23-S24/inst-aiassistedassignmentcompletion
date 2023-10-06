@@ -19,6 +19,8 @@ int yylex();
 
 %%
 
+// Regular expressions to recognize tokens
+
 [ \t\r\f\v]+             /* skip whitespace */
 "true"                   { yylval_int = 1; return BOOLCONST; }
 "false"                  { yylval_int = 0; return BOOLCONST; }
@@ -32,6 +34,7 @@ int yylex();
 
 %%
 
+// Main function to start lexical analysis
 int main(int argc, char* argv[]) {
     if (argc > 1) {
         FILE* file = fopen(argv[1], "r");
@@ -41,6 +44,6 @@ int main(int argc, char* argv[]) {
         }
         yyin = file;
     }
-    yyparse();
+    yyparse(); // Start parsing
     return 0;
 }
