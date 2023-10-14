@@ -1,64 +1,89 @@
 %{
+// Evan and Adam
+
+#include "scanType.h"  // TokenData Type
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "scanType.h"  // Include the token data structure
+
+double variables[26];    
+
+extern int yylex();
+extern FILE *yyin;
+extern int line;
+extern int numErrors;
+
+#define YYERROR_VERBOSE
+void yyerror(const char *msg)
+{
+    printf("ERROR(%d): %s\n", line, msg);
+    numErrors++;
+}
+
 %}
 
 %union {
-    int nvalue;
-    char* svalue;
+    TokenData *tokenData;
 }
 
-%token <svalue> BOOLCONST IDENTIFIER
-%token NUMBER FLOAT
-%token PLUS MINUS STAR SLASH PERCENT
-%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
-%token LESS GREATER EQUAL
-%token COMMA SEMICOLON EXCLAMATION AMPERSAND CARET PIPE QUESTION COLON DOT
-%token <nvalue> INT
-%token <svalue> FLOAT
-
-%type <nvalue> constant
-%type <svalue> id
+%token <tokenData> BOOLCONST ID NUMCONST CHARCONST STRINGCONST
 
 %%
 
-program : /* empty / 
-        | program statement
-        ;
+tokenlist     : tokenlist token
+              | token
+              ;
 
-statement : expression SEMICOLON
-          | assignment SEMICOLON
-          ;
+token         : constant
+              | mulop
+              | sumop
+              | ops
 
-expression : constant
-           | id
-           | expression PLUS expression
-           | expression MINUS expression
-           | expression STAR expression
-           | expression SLASH expression
-           | LPAREN expression RPAREN
-           ;
+sumop         : '+'
+              | '-'
 
-constant : NUMBER
-         | BOOLCONST
-         | FLOAT
-         ;
+mulop         : '*'
+              | '/'
+              | '%'
 
-id : IDENTIFIER
-   ;
+ops           : '<'
+              | '>'
+              | '('
+              | ')'
+              | '['
+              | ']'
+              | ':'
+              | ';'
+              | ','
+              | '?'
+              | '='
 
-assignment : id EQUAL expression
-           ;
+constant      : BOOLCONST
+              | ID
+              | NUMCONST
+              | CHARCONST
+              | STRINGCONST
+
+
 
 %%
+extern int yydebug;
+int main(int argc, char *argv[])
+{
+    if (argc > 1) {
+        if ((yyin = fopen(argv[1], "r"))) {
+            // Enter if we successfully opened the file
+        }
+        else {
+            // Enter if we failed to open the file
+            printf("ERROR: Failed to open '%s'\n", argv[1]);
+            exit(1);
+        }
+    }
 
-void yyerror(const char s) {
-    fprintf(stderr, "Error: %s\n", s);
-}
+    // Make all 26 letter variables 0.0
+    for (int i = 0; i < 26; i++) variables[i] = 0.0;
 
-int main(int argc, char* argv[]) {
+    // Perform the parsing
+    numErrors = 0;
     yyparse();
     return 0;
 }
