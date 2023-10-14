@@ -1,31 +1,32 @@
-CC = gcc
-LEX = flex
-YACC = bison
+BIN = parser
+CC = g++
+NAME = c-
 
-CFLAGS = -Wall -g -w
+SRCS = $(BIN).y  $(BIN).l
+HDRS = scanType.h
+OBJS = lex.yy.o $(BIN).tab.o
 
-LEX_SOURCE = parser.l
-YACC_SOURCE = parser.y
-YACC_HEADER = parser.tab.h
-YACC_C = parser.tab.c
+$(BIN) : $(OBJS)
+	$(CC) $(OBJS) -o $(NAME)
 
-SOURCES = header.h $(LEX_SOURCE) $(YACC_SOURCE)
-OBJECTS = $(YACC_C:.c=.o) $(LEX_C:.c=.o) 
+lex.yy.c : $(BIN).l $(BIN).tab.h $(HDR)
+	flex $(BIN).l
 
-EXECUTABLE = parser
+$(BIN).tab.h $(BIN).tab.c : $(BIN).y
+	bison -v -t -d $(BIN).y
 
-.PHONY: all clean
+clean :
+	rm -f *~ $(OBJS) $(BIN) lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).output
 
-all: $(EXECUTABLE)
+tar : $(HDR) $(SRCS) makefile
+	tar -cvf $(BIN).tar $(HDRS) $(SRCS) makefile
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+TEST_DIR = /home/evan/CS445-Homework/CS445-Homework/testDataA1
+TEST_FILES = $(TEST_DIR)/textTest.c- $(TEST_DIR)/textTest2.c- $(TEST_DIR)/quote.c-
 
-$(YACC_C): $(YACC_SOURCE)
-	$(YACC) -d -o $@ $^
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-clean:
-	rm -f $(EXECUTABLE) $(YACC_C) $(YACC_HEADER) $(OBJECTS)
+test: $(BIN) $(TEST_FILES)
+	@for testfile in $(TEST_FILES); do \
+		echo "Running test: $$testfile"; \
+        ./c- < $$testfile; \
+    done
