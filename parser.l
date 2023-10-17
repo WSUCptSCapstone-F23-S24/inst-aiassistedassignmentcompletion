@@ -1,67 +1,84 @@
 %{
-#include "scanType.h"  // Include the token data structure
+// Evan And Adam
+
+// this order of these includes is mandatory
+#include "scanType.h"
+#include "parser.tab.h"
+
+int line = 1;
+int numErrors;    // The total number of errors
+
+static int setValue(int linenum, int tokenClass, char *svalue)
+{
+    // create the pass-back data space
+    yylval.tokenData = new TokenData;
+
+    // fill it up
+    yylval.tokenData->linenum = linenum;
+    yylval.tokenData->tokenstr = strdup(svalue);  // duplicate string
+    if (tokenClass == BOOLCONST){
+        if (svalue == "true"){
+            yylval.tokenData->numValue = 1;
+        } else {
+            yylval.tokenData->numValue = 0;
+        }
+    }
+    else if (tokenClass == ID) {
+        yylval.tokenData->strValue = strdup(svalue);
+        printf("Line %i Token: ID Value: %s\n", linenum, svalue);
+    }
+    else if (tokenClass == NUMCONST) {
+        yylval.tokenData->numValue = atoi(svalue); 
+        printf("Line %i Token: NUMCONST Value: %i Input %s\n", linenum, atoi(svalue), svalue);
+    }
+    else if (tokenClass == CHARCONST) {
+        if (strlen(svalue) > 3){
+            if(strlen(svalue) > 4 || svalue[1] != '\\'){
+                printf("WARNING(%i): character is %i characters long and not a single character: '%s'.  The first char will be used.", linenum, strlen(svalue)-2, svalue);
+            }
+            if(svalue[1] == '\\'){
+                if(svalue[2] == 'n'){
+                    printf("Line %i Token: CHARCONST Value: '\\n' Input: %s", linenum, svalue);
+                    yylval.tokenData->charValue = '\n';
+                } else if (svalue[2] == '0'){
+                    printf("Line %i Token: CHARCONST Value: '\\0' Input: %s", linenum, svalue);
+                    yylval.tokenData->charValue = '\0';
+                } else {
+                    printf("Line %i Token: CHARCONST Value: '%c' Input: %s", linenum, svalue[2], svalue);
+                    yylval.tokenData->charValue = svalue[2];
+                }
+            } else {
+                printf("Line %i Token: CHARCONST Value: '%c' Input: %s", linenum, svalue[1], svalue);
+                yylval.tokenData->charValue = svalue[1];
+            }
+        }
+        yylval.tokenData->charValue = svalue[0];
+        printf("Line %i Token: CHARCONST Value: '%s' Input: '%s'", linenum);
+    }
+    else if (tokenClass == STRINGCONST) {
+        printf("Line %i Token: STRINGCONST Value: \"%s\" Input: %s", linenum, svalue, svalue);
+        yylval.tokenData->strValue = strdup(svalue);
+    } else {
+        printf("Line %i Token: ", linenum);
+    }
+    return tokenClass;
+}
+
 %}
 
 %option noyywrap
 
-%{
-int line_number = 1;  // Initialize line number
-%}
-
 %%
-
-[ \t\n]+            ; // Ignore whitespace and newlines
-
-"true"              { yylval.svalue = strdup(yytext); return BOOLCONST; }
-"false"             { yylval.svalue = strdup(yytext); return BOOLCONST; }
-[0-9]+              { yylval.nvalue = atoi(yytext); return NUMBER; }
-[a-zA-Z_][a-zA-Z0-9_]*  { yylval.svalue = strdup(yytext); return IDENTIFIER; }
-'.'                 { return DOT; }
-'+'                 { return PLUS; }
-'-'                 { return MINUS; }
-'*'                 { return STAR; }
-'/'                 { return SLASH; }
-'%'                 { return PERCENT; }
-'('                 { return LPAREN; }
-')'                 { return RPAREN; }
-'{'                 { return LBRACE; }
-'}'                 { return RBRACE; }
-'['                 { return LBRACKET; }
-']'                 { return RBRACKET; }
-'<'                 { return LESS; }
-'>'                 { return GREATER; }
-'='                 { return EQUAL; }
-','                 { return COMMA; }
-';'                 { return SEMICOLON; }
-'!'                 { return EXCLAMATION; }
-'&'                 { return AMPERSAND; }
-'^'                 { return CARET; }
-'|'                 { return PIPE; }
-'?'                 { return QUESTION; }
-':'                 { return COLON; }
-'.'[0-9]+           { yylval.svalue = strdup(yytext); return FLOAT; }
-'.'[0-9]+'e'[-+]?[0-9]+' { yylval.svalue = strdup(yytext); return FLOAT; }
-
-'/*'([^*]|'+'[^/*])*'*/'  ; // Ignore comments
-
-.                   { fprintf(stderr, "Error: Illegal character '%c' at line %d\n", yytext[0], line_number); }
-
-\n                  { line_number++; }  // Increment line number for newline
-
+"true"|"false"         { return setValue(line, BOOLCONST, yytext);}
+[A-Za-z][A-Za-z0-9]*   { return setValue(line, ID, yytext);}
+[0-9]*                 { return setValue(line, NUMCONST, yytext);}
+"'\n'"                 { return setValue(line, CHARCONST, yytext);}
+"'\0'"                 { return setValue(line, CHARCONST, yytext);}
+\'([^\\\'])\'           { return setValue(line, CHARCONST, yytext);}
+"'\\"([.])[']          { return setValue(line, CHARCONST, yytext);}
+\"([^\"\n]*([\\"]*))*\" { return setValue(line, STRINGCONST, yytext);}
+[\+\-\*\/\(\)\[\]\<\>\%\?\,\:\;\=] {return setValue(line, yytext[0], yytext);}
+[ \t]                  ;
+\n                     { line++; }
+.                      { printf("ERROR(%i): Invalid input character: \'%c\' Character Ignored.\n", line, yytext[0]); numErrors++; }
 %%
-
-int main(int argc, char* argv[]) {
-    if (argc > 1) {
-        FILE* input_file = fopen(argv[1], "r");
-        if (input_file == NULL) {
-            fprintf(stderr, "Error: Unable to open input file\n");
-            return 1;
-        }
-        yyin = input_file;
-    }
-
-    // Initialize the Flex scanner
-    yylex();
-
-    return 0;
-}
