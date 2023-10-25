@@ -1,49 +1,76 @@
 %{
-#include "parser.tab.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "scanType.h"
+    #include <stdio.h>
+    #include <string.h>
+    int line_num = 1;
 
-extern int yylval_int;
-extern char yylval_char;
-extern char* yylval_str;
-extern int linenum;
-extern FILE* yyin;
+    typedef struct {
+        int tokenClass;
+        int numericVal;
+        char* lexeme;
+        int lineNo;
+    } TOKEN;
 
-int yylex();
+    TOKEN* yylval;
+
+    TOKEN* createToken(int class, int val, char* lexeme) {
+        TOKEN* token = (TOKEN*)malloc(sizeof(TOKEN));
+        token->tokenClass = class;
+        token->numericVal = val;
+        token->lexeme = strdup(lexeme);
+        token->lineNo = line_num;
+        return token;
+    }
+
+    #define NUMBER 1
+    #define ID 2
+    #define BOOLCONST 3
 %}
 
-%option noyywrap
-%option yylineno
+%%
+
+\n                  { line_num++; }
+[ \t\r]             ; // Ignoring whitespace
+"/*"                { char c; while((c=input()) != 0) { if(c == '*') { if(input() == '/') break; } if(c == '\n') line_num++; } }
+"//".*\n            { line_num++; }
+"true"              { yylval = createToken(BOOLCONST, 1, yytext); return BOOLCONST; }
+"false"             { yylval = createToken(BOOLCONST, 0, yytext); return BOOLCONST; }
+[0-9]+              { yylval = createToken(NUMBER, atoi(yytext), yytext); return NUMBER; }
+[a-zA-Z_][a-zA-Z_0-9]* { yylval = createToken(ID, 0, yytext); return ID; }
+'[^']'              { yylval = createToken(NUMBER, (int)yytext[1], yytext); return NUMBER; }
+''                  { fprintf(stderr, "Error at line %d: Empty character constant\n", line_num); }
+'[^']+'             { fprintf(stderr, "Warning at line %d: Character constant '%s' has multiple characters, only the first one will be used\n", line_num, yytext); yylval = createToken(NUMBER, (int)yytext[1], yytext); return NUMBER; }
+.                   { fprintf(stderr, "Error at line %d: Illegal character '%c'\n", line_num, yytext[0]); }
 
 %%
 
-// Regular expressions to recognize tokens
+void printToken(TOKEN* token) {
+    if (!token) return;
 
-[ \t\r\f\v]+             /* skip whitespace */
-"true"                   { yylval_int = 1; return BOOLCONST; }
-"false"                  { yylval_int = 0; return BOOLCONST; }
-[0-9]+                   { yylval_int = atoi(yytext); return NUM; }
-'\\'.'                   { yylval_char = yytext[1]; return CHAR; }
-'\'[^\\'\n]'\n?          { yylval_char = yytext[1]; return CHAR; }
-'\'\\'\\'\n?             { yylval_char = '\''; return CHAR; }
-'\'\\'.'\n?              { yyerror("Illegal character constant"); }
-[a-zA-Z_][a-zA-Z0-9_]*   { yylval_str = strdup(yytext); return ID; }
-.                        { yyerror("Illegal character"); }
-
-%%
-
-// Main function to start lexical analysis
-int main(int argc, char* argv[]) {
-    if (argc > 1) {
-        FILE* file = fopen(argv[1], "r");
-        if (!file) {
-            perror("Error opening file");
-            return 1;
-        }
-        yyin = file;
+    switch (token->tokenClass) {
+        case NUMBER:
+            printf("Token: NUMBER, Lexeme: %s, Numeric Value: %d, Line: %d\n", token->lexeme, token->numericVal, token->lineNo);
+            break;
+        case ID:
+            printf("Token: ID, Lexeme: %s, Line: %d\n", token->lexeme, token->lineNo);
+            break;
+        case BOOLCONST:
+            printf("Token: BOOLCONST, Lexeme: %s, Numeric Value: %d, Line: %d\n", token->lexeme, token->numericVal, token->lineNo);
+            break;
+        default:
+            printf("Unknown token class %d\n", token->tokenClass);
+            break;
     }
-    yyparse(); // Start parsing
+
+    free(token->lexeme); // Free the dynamically allocated lexeme string
+    free(token); // Free the token itself
+}
+
+int main() {
+    TOKEN* token;
+    int tokenType;
+    while ((tokenType = yylex())) {
+        token = yylval;  // Assign yylval to token directly
+        printToken(token);
+    }
     return 0;
 }
