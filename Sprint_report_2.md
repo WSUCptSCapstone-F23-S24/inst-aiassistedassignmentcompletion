@@ -37,10 +37,21 @@ Our plan for the next sprint is to focus on resolving these remaining issues and
 #### Non-AI Team
 During this sprint, we successfully completed the following tasks related to Homework Assignment 2:
 
-1. **Example** (Milestone: Sprint 2) [Link](AddLinkHere)
-   - Assigned to: Adam
-   - Story Points: 4
-   - Description: 
+1. Read and get an understanding of HW2 (Milestone: Sprint 2) [Link]((https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/13))
+   - Assigned to: Adam, Evan
+   - Description: We read about the HW2 requirements along with conferming the required materials we would need and concepts we would need to spend to researching.
+2. Create Tree Structure (Milestone: Sprint 2) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/14)
+   - Assigned to: Adam, Evan
+   - Description: Created the structure of the tree based on the TreeNode class we were given in the assignment details.
+3. Implement Core Functions and Logic For the Complier to Work With the Tree (Milestone: Sprint 2) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/16)
+   - Assigned to: Adam, Evan
+   - Description: Got the desired core functions and logic for the compiler to work with the tree-based structure.
+4. Debug Code and Test (Milestone: Sprint 2) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/17)
+   - Assigned to: Adam, Evan
+   - Description: Ironed out the bugs in the code and ran test cases.
+5. Final Tests and Quality Assurance (Milestone: Sprint 2) [Link](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/18)
+   - Assigned to: Adam, Evan
+   - Description: Ran the final tests and made cleanliness changes.
 
 
 ### Incomplete Issues/User Stories
@@ -50,7 +61,7 @@ During this sprint, we successfully completed the following tasks related to Hom
 
 
 #### Non-AI Team
-There are no incomplete issues for the non-AI team in this sprint.
+All of the non-AI team's active issues for this sprint have been completed.
 
 ### Code Files for Review
 #### AI Team
