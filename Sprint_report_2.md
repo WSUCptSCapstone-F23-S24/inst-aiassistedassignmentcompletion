@@ -61,7 +61,7 @@ During this sprint, we successfully completed the following tasks related to Hom
 
 
 #### Non-AI Team
-All of the non-AI team's active issues for this sprint have been completed.
+All the issues for the Non-AI team's Sprint 2 were completed and closed. In preparation for Sprint 3, we opened an issue that will have us prepare and research for the HW3 assignment.
 
 ### Code Files for Review
 #### AI Team
@@ -70,9 +70,7 @@ All of the non-AI team's active issues for this sprint have been completed.
 
 #### Non-AI Team
 
-
-
-
+All the code files in the Non-AI branch are currently pending review. We will review these files in the coming week.
 
 ## Retrospective Summary
 ### AI Team
@@ -83,3 +81,5 @@ All of the non-AI team's active issues for this sprint have been completed.
 ### Non-AI Team
 What Went Well:
 - **Progress on C- Parser:** Despite the challenges we faced, we made significant progress on developing the C- language parser in this sprint. We successfully implemented advanced features and improved error handling.
+- **Getting the Flex Scanner Working As We Want:** While we originally found ourselves on the wrong track for how we can use the Flex scanner, we found a proper understanding and are now able to use the scanner to help us with our project.
+- **Completing Two Homework Assignments:** We were able to finish the first homework assignment from Sprint 1 along with beginning and finishing the second homework assignment.
