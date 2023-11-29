@@ -61,5 +61,7 @@ By the conclusion of this project, we hope to contribute to the ongoing discussi
 
 
 #
-
+  ##Case Study & Statistics
+  - https://docs.google.com/document/d/1bUyk22_hpmSpAg9q8oyARsY8FwXJQLJWLJugsqGkRs0/edit
+  - https://docs.google.com/spreadsheets/d/1GAN1jeqRFkzP16Unh1nZwH8i96aEmYWea3FgvYZ8UM8/edit#gid=378727914
 Please refer to the respective sections for detailed information about each aspect of the project.
