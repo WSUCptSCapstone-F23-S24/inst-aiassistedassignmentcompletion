@@ -83,80 +83,80 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
         {
             switch (node->subkind.stmt)
             {
-            case NullK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
+                case NullK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-            case IfK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
+                case IfK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-            case WhileK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
+                case WhileK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-            case ForK:
-                symTab->enter(std::string("this is a for loop"));
+                case ForK:
+                    symTab->enter(std::string("this is a for loop"));
 
-                checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
+                    checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
 
-                if (!(node->child[2] != NULL && node->child[2]->nodekind == StmtK && node->child[2]->subkind.stmt == CompoundK))
-                {
-                    symTab->applyToAll(checkIsUsed);
-                }
-
-                symTab->leave();
-                break;
-
-            case CompoundK:
-                if (!parentSuppressScope)
-                    symTab->enter(std::string("THIS IS A COMPOUND"));
-
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-
-                symTab->applyToAll(checkIsUsed);
-
-                if (!parentSuppressScope)
-                    symTab->leave();
-
-                parentSuppressScope = false;
-                break;
-
-            case ReturnK:
-
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-
-                if (node->child[0] != NULL && node->child[0]->isArray)
-                {
-                    printf("ERROR(%d): Cannot return an array.\n", node->lineno);
-                    NUM_ERRORS++;
-                }
-                break;
-
-            case BreakK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
-
-            case RangeK:
-                if (node->child[0] != NULL && node->child[1] != NULL)
-                {
-                    node->child[0]->isInit = true;
-                    node->child[0]->isRangeK = true;
-                    node->child[1]->isInit = true;
-                    node->child[1]->isRangeK = true;
-
-                    if (node->child[2] != NULL)
+                    if (!(node->child[2] != NULL && node->child[2]->nodekind == StmtK && node->child[2]->subkind.stmt == CompoundK))
                     {
-                        node->child[2]->isInit = true;
-                        node->child[2]->isRangeKBy = true;
+                        symTab->applyToAll(checkIsUsed);
                     }
-                }
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
 
-            default:
-                printf("PROGRAMMER ERROR UNKNOWN STATMENT TYPE\nSHOULD NOT GET HERE\n");
-                exit(-1);
+                    symTab->leave();
+                    break;
+
+                case CompoundK:
+                    if (!parentSuppressScope)
+                        symTab->enter(std::string("THIS IS A COMPOUND"));
+
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+
+                    symTab->applyToAll(checkIsUsed);
+
+                    if (!parentSuppressScope)
+                        symTab->leave();
+
+                    parentSuppressScope = false;
+                    break;
+
+                case ReturnK:
+
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+
+                    if (node->child[0] != NULL && node->child[0]->isArray)
+                    {
+                        printf("ERROR(%d): Cannot return an array.\n", node->lineno);
+                        NUM_ERRORS++;
+                    }
+                    break;
+
+                case BreakK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
+
+                case RangeK:
+                    if (node->child[0] != NULL && node->child[1] != NULL)
+                    {
+                        node->child[0]->isInit = true;
+                        node->child[0]->isRangeK = true;
+                        node->child[1]->isInit = true;
+                        node->child[1]->isRangeK = true;
+
+                        if (node->child[2] != NULL)
+                        {
+                            node->child[2]->isInit = true;
+                            node->child[2]->isRangeKBy = true;
+                        }
+                    }
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
+
+                default:
+                    printf("PROGRAMMER ERROR UNKNOWN STATMENT TYPE\nSHOULD NOT GET HERE\n");
+                    exit(-1);
             }
         }
 
@@ -164,98 +164,98 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
         {
             switch (node->subkind.decl)
             {
-            case VarK:
-                if (symTab->insert(std::string(node->attr.name), (void *)node))
-                {
-                    node->depth = symTab->depth();
-                    node->isUsed = false;
+                case VarK:
+                    if (symTab->insert(std::string(node->attr.name), (void *)node))
+                    {
+                        node->depth = symTab->depth();
+                        node->isUsed = false;
 
-                    if (node->parent != NULL && node->parent->nodekind == StmtK && node->parent->subkind.stmt == ForK)
-                        node->isInit = true;
+                        if (node->parent != NULL && node->parent->nodekind == StmtK && node->parent->subkind.stmt == ForK)
+                            node->isInit = true;
+                        else
+                            node->isInit = false;
+
+                        node->isInitErrorThrown = false;
+                    }
                     else
-                        node->isInit = false;
+                    {
+                        lookupNode = (treeNode *)symTab->lookup(node->attr.name);
+                        printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
+                               node->lineno,
+                               lookupNode->attr.name,
+                               lookupNode->lineno);
+                        NUM_ERRORS++;
+                    }
 
-                    node->isInitErrorThrown = false;
-                }
-                else
-                {
-                    lookupNode = (treeNode *)symTab->lookup(node->attr.name);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
-                           node->lineno,
-                           lookupNode->attr.name,
-                           lookupNode->lineno);
-                    NUM_ERRORS++;
-                }
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
 
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    if (node->child[0] != NULL)
+                        node->isInit = true;
 
-                if (node->child[0] != NULL)
+                    break;
+
+                case FuncK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName funck\n");
+                        break;
+                    }
+
+                    if (symTab->insertGlobal(std::string(node->attr.string), node))
+                    {
+                        node->depth = symTab->depth();
+                        node->isUsed = false;
+                        node->isFunc = true;
+                    }
+                    else
+                    {
+                        lookupNode = (treeNode *)symTab->lookup(node->attr.string);
+                        printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
+                               node->lineno,
+                               lookupNode->attr.string,
+                               lookupNode->lineno);
+                        NUM_ERRORS++;
+                    }
+                    symTab->enter(std::string(node->attr.string));
+
+                    checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
+
+                    if (node->child[1] != NULL)
+                    {
+                        if (node->child[1]->nodekind == StmtK && node->child[1]->subkind.stmt == ReturnK)
+                            symTab->applyToAll(checkIsUsed);
+                    }
+
+                    symTab->leave();
+                    break;
+
+                case ParamK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName Paramk\n");
+                        break;
+                    }
+
+                    node->isUsed = false;
                     node->isInit = true;
 
-                break;
-
-            case FuncK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName funck\n");
-                    break;
-                }
-
-                if (symTab->insertGlobal(std::string(node->attr.string), node))
-                {
+                    if (!symTab->insert(std::string(node->attr.name), (void *)node))
+                    {
+                        lookupNode = (treeNode *)symTab->lookup(node->attr.string);
+                        printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
+                               node->lineno,
+                               lookupNode->attr.string,
+                               lookupNode->lineno);
+                        NUM_ERRORS++;
+                    }
                     node->depth = symTab->depth();
-                    node->isUsed = false;
-                    node->isFunc = true;
-                }
-                else
-                {
-                    lookupNode = (treeNode *)symTab->lookup(node->attr.string);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
-                           node->lineno,
-                           lookupNode->attr.string,
-                           lookupNode->lineno);
-                    NUM_ERRORS++;
-                }
-                symTab->enter(std::string(node->attr.string));
 
-                checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
-
-                if (node->child[1] != NULL)
-                {
-                    if (node->child[1]->nodekind == StmtK && node->child[1]->subkind.stmt == ReturnK)
-                        symTab->applyToAll(checkIsUsed);
-                }
-
-                symTab->leave();
-                break;
-
-            case ParamK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName Paramk\n");
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
                     break;
-                }
 
-                node->isUsed = false;
-                node->isInit = true;
-
-                if (!symTab->insert(std::string(node->attr.name), (void *)node))
-                {
-                    lookupNode = (treeNode *)symTab->lookup(node->attr.string);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n",
-                           node->lineno,
-                           lookupNode->attr.string,
-                           lookupNode->lineno);
-                    NUM_ERRORS++;
-                }
-                node->depth = symTab->depth();
-
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
-
-            default:
-                printf("PROGRAMMER ERROR UNKNOWN DECL TYPE\nSHOULD NOT GET HERE\n");
-                exit(-1);
+                default:
+                    printf("PROGRAMMER ERROR UNKNOWN DECL TYPE\nSHOULD NOT GET HERE\n");
+                    exit(-1);
             }
         }
 
@@ -263,233 +263,233 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
         {
             switch (node->subkind.exp)
             {
-            case OpK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                case OpK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
 
-                if (node->op == OPEN_BRACK)
-                {
-                    if (node->child[0] != NULL)
-                        node->expType = node->child[0]->expType;
+                    if (node->op == OPEN_BRACK)
+                    {
+                        if (node->child[0] != NULL)
+                            node->expType = node->child[0]->expType;
 
-                    if (node->child[1]->expType != Integer)
-                    {
-                        char buff[64];
-                        convertExpTypeToString(node->child[1]->expType, buff);
-                        printf("ERROR(%d): Array '%s' should be indexed by type int but got type %s.\n",
-                               node->lineno, node->child[0]->attr.name, buff);
-                        NUM_ERRORS++;
-                    }
-
-                    lookupNode = (treeNode *)symTab->lookup(std::string(node->child[0]->attr.name));
-                    if (lookupNode != NULL && !(lookupNode->isArray))
-                    {
-                        printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
-                        NUM_ERRORS++;
-                    }
-                    else if (lookupNode == NULL)
-                    {
-                        printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
-                        NUM_ERRORS++;
-                    }
-
-                    if (node->child[1]->nodekind == ExpK && node->child[1]->subkind.exp == IdK)
-                    {
-                        lookupNode = (treeNode *)symTab->lookup(std::string(node->child[1]->attr.name));
-                        if (lookupNode != NULL && lookupNode->isArray)
+                        if (node->child[1]->expType != Integer)
                         {
-                            printf("ERROR(%d): Array index is the unindexed array '%s'.\n", node->child[1]->lineno, node->child[1]->attr.name);
+                            char buff[64];
+                            convertExpTypeToString(node->child[1]->expType, buff);
+                            printf("ERROR(%d): Array '%s' should be indexed by type int but got type %s.\n",
+                                   node->lineno, node->child[0]->attr.name, buff);
+                            NUM_ERRORS++;
+                        }
+
+                        lookupNode = (treeNode *)symTab->lookup(std::string(node->child[0]->attr.name));
+                        if (lookupNode != NULL && !(lookupNode->isArray))
+                        {
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
+                            NUM_ERRORS++;
+                        }
+                        else if (lookupNode == NULL)
+                        {
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
+                            NUM_ERRORS++;
+                        }
+
+                        if (node->child[1]->nodekind == ExpK && node->child[1]->subkind.exp == IdK)
+                        {
+                            lookupNode = (treeNode *)symTab->lookup(std::string(node->child[1]->attr.name));
+                            if (lookupNode != NULL && lookupNode->isArray)
+                            {
+                                printf("ERROR(%d): Array index is the unindexed array '%s'.\n", node->child[1]->lineno, node->child[1]->attr.name);
+                                NUM_ERRORS++;
+                            }
+                        }
+                        node->isArray = false;
+                    }
+                    else
+                    {
+                        if (node->op == SIZEOF)
+                            checkSizeOf(node, symTab);
+                        else
+                            node->expType = typeTable(node, node->child[0], node->child[1]);
+                    }
+                    break;
+                case ConstantK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
+
+                case IdK:
+                    lookupNode = (treeNode *)symTab->lookup(std::string(node->attr.name));
+
+                    if (lookupNode == NULL)
+                    {
+                        if (!node->isRangeK)
+                        {
+                            printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
                             NUM_ERRORS++;
                         }
                     }
-                    node->isArray = false;
-                }
-                else
-                {
-                    if (node->op == SIZEOF)
-                        checkSizeOf(node, symTab);
                     else
-                        node->expType = typeTable(node, node->child[0], node->child[1]);
-                }
-                break;
-            case ConstantK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
-
-            case IdK:
-                lookupNode = (treeNode *)symTab->lookup(std::string(node->attr.name));
-
-                if (lookupNode == NULL)
-                {
-                    if (!node->isRangeK)
                     {
-                        printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
-                        NUM_ERRORS++;
-                    }
-                }
-                else
-                {
-                    if (node->isRangeK || node->parent->isRangeKBy || node->isRangeKBy)
-                    {
-                        lookupNode->isInit = true;
-                    }
-                    else
-                        lookupNode->isUsed = true;
-
-                    if ((node->parent->nodekind == StmtK && node->parent->subkind.stmt == RangeK) || node->isRangeKBy || node->parent->isRangeKBy)
-                    {
-                        node->expType = UndefinedType;
-                    }
-                    else
-                        node->expType = lookupNode->expType;
-
-                    node->isArray = lookupNode->isArray;
-                    node->isStatic = lookupNode->isStatic;
-                    node->isFunc = lookupNode->isFunc;
-
-                    if (!lookupNode->isInit)
-                    {
-                        bool suppressWarning = false;
-                        treeNode *currParent = node->parent;
-                        treeNode *currNode = node;
-
-                        if (currParent->parent != NULL && currParent->parent->op == OPEN_BRACK)
+                        if (node->isRangeK || node->parent->isRangeKBy || node->isRangeKBy)
                         {
-                            currNode = currParent->parent;
-                            currParent = currParent->parent->parent;
+                            lookupNode->isInit = true;
                         }
+                        else
+                            lookupNode->isUsed = true;
 
-                        if (currParent->op == OPEN_BRACK)
+                        if ((node->parent->nodekind == StmtK && node->parent->subkind.stmt == RangeK) || node->isRangeKBy || node->parent->isRangeKBy)
                         {
-                            currNode = currParent;
-                            currParent = currParent->parent;
+                            node->expType = UndefinedType;
                         }
+                        else
+                            node->expType = lookupNode->expType;
 
-                        if (currNode->parent->op == ADDASS)
-                        {
-                            suppressWarning = true;
-                        }
+                        node->isArray = lookupNode->isArray;
+                        node->isStatic = lookupNode->isStatic;
+                        node->isFunc = lookupNode->isFunc;
 
-                        if (currParent != NULL && currParent->nodekind == ExpK && currParent->subkind.exp == AssignK && currParent->child[0] == currNode && currParent->op == ASS)
+                        if (!lookupNode->isInit)
                         {
-                            suppressWarning = true;
-                        }
+                            bool suppressWarning = false;
+                            treeNode *currParent = node->parent;
+                            treeNode *currNode = node;
 
-                        if (lookupNode->isStatic || lookupNode->depth == 1)
-                        {
-                            suppressWarning = true;
-                        }
-
-                        if (!suppressWarning)
-                        {
-                            if (!lookupNode->isInitErrorThrown && !lookupNode->isFunc)
+                            if (currParent->parent != NULL && currParent->parent->op == OPEN_BRACK)
                             {
+                                currNode = currParent->parent;
+                                currParent = currParent->parent->parent;
+                            }
 
-                                printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", node->lineno, node->attr.name);
-                                NUM_WARNINGS++;
-                                lookupNode->isInitErrorThrown = true;
+                            if (currParent->op == OPEN_BRACK)
+                            {
+                                currNode = currParent;
+                                currParent = currParent->parent;
+                            }
+
+                            if (currNode->parent->op == ADDASS)
+                            {
+                                suppressWarning = true;
+                            }
+
+                            if (currParent != NULL && currParent->nodekind == ExpK && currParent->subkind.exp == AssignK && currParent->child[0] == currNode && currParent->op == ASS)
+                            {
+                                suppressWarning = true;
+                            }
+
+                            if (lookupNode->isStatic || lookupNode->depth == 1)
+                            {
+                                suppressWarning = true;
+                            }
+
+                            if (!suppressWarning)
+                            {
+                                if (!lookupNode->isInitErrorThrown && !lookupNode->isFunc)
+                                {
+
+                                    printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", node->lineno, node->attr.name);
+                                    NUM_WARNINGS++;
+                                    lookupNode->isInitErrorThrown = true;
+                                }
                             }
                         }
+
+                        if (lookupNode->isFunc)
+                        {
+                            printf("ERROR(%d): Cannot use function '%s' as a variable.\n", node->lineno, node->attr.name);
+                            NUM_ERRORS++;
+                        }
                     }
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-                    if (lookupNode->isFunc)
-                    {
-                        printf("ERROR(%d): Cannot use function '%s' as a variable.\n", node->lineno, node->attr.name);
-                        NUM_ERRORS++;
-                    }
-                }
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
-
-            case AssignK:
-            {
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-
-                bool isArrayRef = false;
-
-                if (node->child[0] == NULL)
+                case AssignK:
                 {
-                    printf("Unexpected Null child when checking init for assignk's\n");
-                }
-                else
-                {
-                    treeNode *lookupNode;
-                    treeNode *childNodeRef;
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
 
-                    childNodeRef = node->child[0];
+                    bool isArrayRef = false;
 
-                    if (childNodeRef->op == OPEN_BRACK)
-                    {
-                        isArrayRef = true;
-                        childNodeRef = childNodeRef->child[0];
-                    }
-
-                    if (childNodeRef == NULL)
+                    if (node->child[0] == NULL)
                     {
                         printf("Unexpected Null child when checking init for assignk's\n");
                     }
                     else
                     {
-                        lookupNode = (treeNode *)symTab->lookup(std::string(std::string(childNodeRef->attr.name)));
+                        treeNode *lookupNode;
+                        treeNode *childNodeRef;
 
-                        if (lookupNode != NULL)
+                        childNodeRef = node->child[0];
+
+                        if (childNodeRef->op == OPEN_BRACK)
                         {
-                            lookupNode->isInit = true;
+                            isArrayRef = true;
+                            childNodeRef = childNodeRef->child[0];
+                        }
+
+                        if (childNodeRef == NULL)
+                        {
+                            printf("Unexpected Null child when checking init for assignk's\n");
+                        }
+                        else
+                        {
+                            lookupNode = (treeNode *)symTab->lookup(std::string(std::string(childNodeRef->attr.name)));
+
+                            if (lookupNode != NULL)
+                            {
+                                lookupNode->isInit = true;
+                            }
+                        }
+
+                        if (isArrayRef)
+                        {
+                            childNodeRef->parent->isArray = false;
+                            childNodeRef->parent->expType = childNodeRef->expType;
                         }
                     }
 
-                    if (isArrayRef)
+                    if (node->op != OPEN_BRACK)
                     {
-                        childNodeRef->parent->isArray = false;
-                        childNodeRef->parent->expType = childNodeRef->expType;
+                        if (node->op == SIZEOF)
+                            checkSizeOf(node, symTab);
+                        else
+                            node->expType = typeTable(node, node->child[0], node->child[1]);
                     }
+
+                    break;
                 }
+                case InitK:
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-                if (node->op != OPEN_BRACK)
-                {
-                    if (node->op == SIZEOF)
-                        checkSizeOf(node, symTab);
-                    else
-                        node->expType = typeTable(node, node->child[0], node->child[1]);
-                }
-
-                break;
-            }
-            case InitK:
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-                break;
-
-            case CallK:
-                lookupNode = (treeNode *)symTab->lookup(std::string(node->attr.name));
-                if (lookupNode != NULL)
-                {
-                    lookupNode->isUsed = true;
-                    if (!lookupNode->isFunc)
+                case CallK:
+                    lookupNode = (treeNode *)symTab->lookup(std::string(node->attr.name));
+                    if (lookupNode != NULL)
                     {
-                        printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", node->lineno, node->attr.name);
+                        lookupNode->isUsed = true;
+                        if (!lookupNode->isFunc)
+                        {
+                            printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", node->lineno, node->attr.name);
+                            NUM_ERRORS++;
+                            break;
+                        }
+                    }
+
+                    lookupNode = (treeNode *)symTab->lookupGlobal(std::string(node->attr.name));
+                    if (lookupNode == NULL)
+                    {
+                        printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
                         NUM_ERRORS++;
-                        break;
                     }
-                }
+                    else
+                    {
+                        lookupNode->isUsed = true;
+                        node->expType = lookupNode->expType;
+                    }
 
-                lookupNode = (treeNode *)symTab->lookupGlobal(std::string(node->attr.name));
-                if (lookupNode == NULL)
-                {
-                    printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
-                    NUM_ERRORS++;
-                }
-                else
-                {
-                    lookupNode->isUsed = true;
-                    node->expType = lookupNode->expType;
-                }
+                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
 
-                checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    break;
 
-                break;
-
-            default:
-                printf("PROGRAMMER ERROR UNKNOWN EXP\nSHOULD NOT GET HERE\n");
-                exit(-1);
+                default:
+                    printf("PROGRAMMER ERROR UNKNOWN EXP\nSHOULD NOT GET HERE\n");
+                    exit(-1);
             }
         }
 
@@ -964,4 +964,57 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
     }
 
     return UndefinedType;
+}
+
+
+void reportError(const std::string& message, int lineNumber) {
+    std::cerr << "Error(line " << lineNumber << "): " << message << std::endl;
+    NUM_ERRORS++;
+}
+
+void reportWarning(const std::string& type, const std::string& name, int lineNumber) {
+    std::string warningMsg = "WARNING(line " + std::to_string(lineNumber) + "): The " + type + " '" + name + "' seems not to be used.\n";
+    std::cerr << warningMsg;
+    NUM_WARNINGS++;
+}
+
+
+void checkReturnType(TreeNode* functionNode) {
+    if (functionNode->returnType != functionNode->statements->evaluateType()) {
+        reportError("Return type mismatch in function", functionNode->lineNumber);
+    }
+}
+
+void checkLoopConditions(TreeNode* loopNode) {
+    if (loopNode->condition->evaluateType() != BooleanType) {
+        reportError("Loop condition must be a boolean expression", loopNode->lineNumber);
+    }
+}
+
+void checkAssignmentTypes(TreeNode* assignmentNode) {
+    if (assignmentNode->lhs->evaluateType() != assignmentNode->rhs->evaluateType()) {
+        reportError("Type mismatch in assignment", assignmentNode->lineNumber);
+    }
+}
+
+
+void traverseTree(TreeNode* node) {
+    if (node == nullptr) return;
+
+    switch (node->nodeType) {
+        case NodeType::Function:
+            checkReturnType(node);
+            break;
+        case NodeType::Loop:
+            checkLoopConditions(node);
+            break;
+        case NodeType::Assignment:
+            checkAssignmentTypes(node);
+            break;
+            // Add other cases as necessary
+    }
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        traverseTree(node->child[i]);
+    }
 }
