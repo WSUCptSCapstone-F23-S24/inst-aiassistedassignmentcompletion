@@ -536,8 +536,9 @@ int main(int argc, char *argv[])
 
       if( (tmpLookupNode == NULL || tmpLookupNode->child[0] != NULL) || !tmpLookupNode->isFunc)
       {
-        
-        printf("ERROR(LINKER): A function named 'main()' must be defined.\n");
+
+        printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
+
         NUM_ERRORS++;
       }
 
