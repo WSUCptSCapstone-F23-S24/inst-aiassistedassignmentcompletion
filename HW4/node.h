@@ -108,6 +108,9 @@ typedef struct treeNode
     bool isStatic;
     bool isUsed;
     bool isInit;
+    char* tokenStr
+    bool undeclared
+    bool isConst
 
 } TreeNode;
 
