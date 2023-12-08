@@ -15,9 +15,27 @@ extern FILE *yyin;
 extern int yydebug;
 
 #define YYERROR_VERBOSE
+
 void yyerror(const char *msg)
 {
-    printf("ERROR: %s\n", msg);
+    extern int yylineno;  // External variable for line number
+    extern char *yytext;  // External variable for text of the current token
+
+    // Check if the error message is one of the known syntax errors
+    if (strcmp(msg, "syntax error, unexpected '+') == 0 ||
+        strcmp(msg, "syntax error, unexpected ELSE') == 0 ||
+        strcmp(msg, "syntax error, unexpected '=', expecting '('") == 0 ||
+        strcmp(msg, "syntax error, unexpected '=', expecting WHILE") == 0 ||
+        strcmp(msg, "syntax error, unexpected ID, expecting '('") == 0 ||
+        strcmp(msg, "syntax error, unexpected ID, expecting WHILE") == 0 ||
+        strcmp(msg, "syntax error, unexpected '+', expecting ',' or ';'") == 0 ||
+        strcmp(msg, "syntax error, unexpected '/', expecting BOOL or INT or VOID") == 0 ||
+        strcmp(msg, "syntax error, unexpected ID, expecting $end or BOOL or INT or VOID") == 0) {
+        printf("Line %d: %s at '%s'\n", yylineno, msg, yytext);
+    } else {
+        // Generic error message
+        printf("Line %d: %s\n", yylineno, msg);
+    }
 }
 
 static char *toUpperString(char *str)
