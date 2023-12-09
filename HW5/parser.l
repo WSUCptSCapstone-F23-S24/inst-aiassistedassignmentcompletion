@@ -5,7 +5,13 @@
 #include <ctype.h>
 
 static int lineNumber = 1;
-int numErrors;
+
+int line;
+char *lastToken;
+
+extern int NUM_ERRORS;
+extern int NUM_WARNINGS;
+
 
 static void convertEscapeStr(char *inBuff, char *outBuff)
 {
@@ -19,7 +25,7 @@ static void convertEscapeStr(char *inBuff, char *outBuff)
     size_t inBuffLen = strlen(inBuff);
     for(size_t i = 1; i < inBuffLen; i++)
     {
-        
+
         if(inBuff[i] == '"')
         {
             outBuff[j] = '\0';
@@ -29,7 +35,7 @@ static void convertEscapeStr(char *inBuff, char *outBuff)
         if(inBuff[i] != '\\')
         {
             outBuff[j++] = inBuff[i];
-            continue; 
+            continue;
         }
 
         else
@@ -50,8 +56,14 @@ static void convertEscapeStr(char *inBuff, char *outBuff)
         }
     }
 
-    printf("INTERNAL SCANNING ERROR: inBuff string is not closed by a \"\n");
-    exit(-1);
+    for(size_t i = 0; i < inBuffLen; i++)
+    {
+        printf("ERROR(%d): Invalid or misplaced input character: '%c'. Character Ignored.\n",
+        lineNumber,
+        inBuff[i]);
+
+         NUM_ERRORS++;
+    }
 }
 
 static void convertEscapeChar(char *inBuff, char *outBuff)
@@ -67,7 +79,7 @@ static void convertEscapeChar(char *inBuff, char *outBuff)
     size_t inBuffLen = strlen(inBuff);
     for(i = 1; i < inBuffLen; i++)
     {
-        
+
         if(inBuff[i] == '\'')
         {
             outBuff[j] = '\0';
@@ -77,7 +89,7 @@ static void convertEscapeChar(char *inBuff, char *outBuff)
         if(inBuff[i] != '\\')
         {
             outBuff[j++] = inBuff[i];
-            continue; 
+            continue;
         }
 
         else
@@ -106,18 +118,33 @@ static void convertEscapeChar(char *inBuff, char *outBuff)
 
 static int setValue(int lineNumber, int tokenClass, char *svalue)
 {
-    yylval.tokenData = new TokenData;
+    lastToken = svalue;
+    line = lineNumber;
 
+    yylval.tokenData = new TokenData;
     yylval.tokenData->tokenClass = tokenClass;
     yylval.tokenData->lineNum = lineNumber;
     yylval.tokenData->tokenStr = strdup(svalue);
-  
-    if (tokenClass == NUMCONST) 
+
+    if (tokenClass == NUMCONST)
     {
-        yylval.tokenData->nValue = atof(svalue); 
+
+        yylval.tokenData->nValue = atof(svalue);
     }
     else if (tokenClass == CHARCONST)
     {
+        if( ((int)strlen(svalue) -2) != 1)
+        {
+            if(svalue[1] != '\\')
+            {
+                printf("WARNING(%d): character is %d characters long and not a single character: '%s'.  The first char will be used.\n",
+                    lineNumber,
+                    ((int)strlen(svalue) -2),
+                    svalue);
+
+                NUM_WARNINGS++;
+            }
+        }
         yylval.tokenData->sValue = strdup(svalue);
         convertEscapeChar(yylval.tokenData->sValue,yylval.tokenData->sValue);
         yylval.tokenData->cValue = yylval.tokenData->sValue[0];
@@ -129,27 +156,33 @@ static int setValue(int lineNumber, int tokenClass, char *svalue)
     }
     else if (tokenClass == TRUE)
     {
-        yylval.tokenData->nValue = 1; 
+        yylval.tokenData->nValue = 1;
     }
     else if (tokenClass == FALSE)
     {
-        yylval.tokenData->nValue = 0; 
+        yylval.tokenData->nValue = 0;
     }
 
     return tokenClass;
 }
 
+
+
+
+
 %}
 
 whitespace [ \t\r\f]
+
 numbers [0-9]
-letterDig [a-zA-Z]|[0-9] 
+letterDig [a-zA-Z]|[0-9]
 letters [a-zA-Z]
 charconst '[^'\n]*'
 escapedCharConst '(\\.|[^\\'\n])*'
 stringConst \"[^\"\n]*\"
 escapedStringConst \"(\\.|[^\\\"\n])*\"
 comment \/\/(.)*
+ID [a-zA-Z][a-zA-Z0-9]*
 
 %option noyywrap
 %option nounput
@@ -158,7 +191,7 @@ int                       {return setValue(lineNumber,INT,yytext);}
 char                      {return setValue(lineNumber,CHAR,yytext);}
 if                        {return setValue(lineNumber,IF,yytext);}
 then                      {return setValue(lineNumber,THEN,yytext);}
-else                      {return setValue(lineNumber,ELSE,yytext);}  
+else                      {return setValue(lineNumber,ELSE,yytext);}
 while                     {return setValue(lineNumber,WHILE,yytext);}
 do                        {return setValue(lineNumber,DO,yytext);}
 for                       {return setValue(lineNumber,FOR,yytext);}
@@ -174,7 +207,7 @@ bool                      {return setValue(lineNumber,BOOL,yytext);}
 true                      {return setValue(lineNumber,TRUE,yytext);}
 false                     {return setValue(lineNumber,FALSE,yytext);}
 
-\{                        {return setValue(lineNumber,OPEN_BRACE,yytext);}                          
+\{                        {return setValue(lineNumber,OPEN_BRACE,yytext);}
 \}                        {return setValue(lineNumber,CLOSE_BRACE,yytext);}
 \(                        {return setValue(lineNumber,OPEN_PAREN,yytext);}
 \)                        {return setValue(lineNumber,CLOSE_PAREN,yytext);}
@@ -206,16 +239,19 @@ false                     {return setValue(lineNumber,FALSE,yytext);}
 \;                        {return setValue(lineNumber,SEMI,yytext);}
 
 
-
 [\n]                      {lineNumber++;}
 {whitespace}+             {;}
 {comment}                 {;}
 {stringConst}             {return setValue(lineNumber,STRINGCONST,yytext);}
 {escapedStringConst}      {return setValue(lineNumber,STRINGCONST,yytext);}
-{charconst}               {return setValue(lineNumber,CHARCONST,yytext);}
+{charconst}               {if(((int)strlen(yytext)-2)!=0) return setValue(lineNumber,CHARCONST,yytext);else printf("ERROR(%d): Empty character ''.  Characters ignored.\n",
+                                                                                                                lineNumber);
+                                                                                                                NUM_ERRORS++;}
 {escapedCharConst}        {return setValue(lineNumber,CHARCONST,yytext);}
 {numbers}+                {return setValue(lineNumber,NUMCONST,yytext);}
-{letters}|{letterDig}*    {return setValue(lineNumber,ID,yytext);}
-.                         {printf("ERROR(%d): Invalid or misplaced input character: '%c'. Character Ignored.\n",lineNumber,yytext[0]);}
+{ID}                      {return setValue(lineNumber,ID,yytext);}
 
+.                         {printf("ERROR(%d): Invalid or misplaced input character: '%c'. Character Ignored.\n",lineNumber,yytext[0]); NUM_ERRORS++;}
+
+<INITIAL><<EOF>>         {line = lineNumber; return 0;}
 %%
