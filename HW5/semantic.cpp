@@ -29,7 +29,6 @@ void checkSizeOf(TreeNode *node, SymbolTable *symTab)
 {
     if (node->op == SIZEOF)
     {
-
         if (node->parent->isRangeK)
         {
             node->expType = UndefinedType;
@@ -74,6 +73,7 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
     char typing[64];
 
     treeNode *lookupNode;
+
     while (node != NULL)
     {
         node->parent = parent;
@@ -165,7 +165,6 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
             switch (node->subkind.decl)
             {
                 case VarK:
-
                     if (symTab->insert(std::string(node->attr.name), (void *)node))
                     {
                         node->depth = symTab->depth();
@@ -287,7 +286,6 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
                             NUM_ERRORS++;
                         }
-
                         else if (lookupNode == NULL)
                         {
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
@@ -305,7 +303,6 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         }
                         node->isArray = false;
                     }
-
                     else
                     {
                         if (node->op == SIZEOF)
@@ -510,6 +507,7 @@ void checkIsUsed(std::string symbolName, void *ptr)
 {
     treeNode *nodeptr;
     nodeptr = (treeNode *)ptr;
+
     if (!nodeptr->isUsed && nodeptr->depth != 1)
     {
         printf("WARNING(%d): The variable '%s' seems not to be used.\n",
@@ -540,7 +538,6 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
             {
                 if (!lhsNode->isArray && !rhsNode->isArray)
                 {
-                    //HACK
                     if (parentNode->parent->nodekind == StmtK && parentNode->parent->subkind.stmt == RangeK)
                     {
                         return UndefinedType;
@@ -861,7 +858,6 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
 
             return Integer;
         }
-
         else if (op == DEC || op == INC)
         {
             lhs = lhsNode->expType;
@@ -907,7 +903,6 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
             convertExpTypeToString(lhs, buff1);
             convertExpTypeToString(rhs, buff2);
 
-
             if (lhs == Boolean)
             {
                 printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
@@ -940,6 +935,7 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
         else if (op == NOT)
         {
             lhs = lhsNode->expType;
+
             if (lhs == Boolean)
             {
                 if (lhsNode->isArray)
@@ -966,5 +962,59 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
             return Boolean;
         }
     }
+
     return UndefinedType;
+}
+
+
+void reportError(const std::string& message, int lineNumber) {
+    std::cerr << "Error(line " << lineNumber << "): " << message << std::endl;
+    NUM_ERRORS++;
+}
+
+void reportWarning(const std::string& type, const std::string& name, int lineNumber) {
+    std::string warningMsg = "WARNING(line " + std::to_string(lineNumber) + "): The " + type + " '" + name + "' seems not to be used.\n";
+    std::cerr << warningMsg;
+    NUM_WARNINGS++;
+}
+
+
+void checkReturnType(TreeNode* functionNode) {
+    if (functionNode->returnType != functionNode->statements->evaluateType()) {
+        reportError("Return type mismatch in function", functionNode->lineNumber);
+    }
+}
+
+void checkLoopConditions(TreeNode* loopNode) {
+    if (loopNode->condition->evaluateType() != BooleanType) {
+        reportError("Loop condition must be a boolean expression", loopNode->lineNumber);
+    }
+}
+
+void checkAssignmentTypes(TreeNode* assignmentNode) {
+    if (assignmentNode->lhs->evaluateType() != assignmentNode->rhs->evaluateType()) {
+        reportError("Type mismatch in assignment", assignmentNode->lineNumber);
+    }
+}
+
+
+void traverseTree(TreeNode* node) {
+    if (node == nullptr) return;
+
+    switch (node->nodeType)
+    {
+        case NodeType::Function:
+            checkReturnType(node);
+            break;
+        case NodeType::Loop:
+            checkLoopConditions(node);
+            break;
+        case NodeType::Assignment:
+            checkAssignmentTypes(node);
+            break;
+    }
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        traverseTree(node->child[i]);
+    }
 }
