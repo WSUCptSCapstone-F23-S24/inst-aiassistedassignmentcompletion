@@ -14,16 +14,22 @@ TreeNode *newDeclNode(DeclKind kind, ExpType type, TokenData *token, TreeNode *c
     treeNode->child[2] = c2;
     treeNode->sibling = NULL;
 
-    treeNode->lineno = token->lineNum;
+    if (token != NULL)
+        treeNode->lineno = token->lineNum;
 
     treeNode->nodekind = DeclK;
-
     treeNode->subkind.decl = kind;
-
     treeNode->expType = type;
 
-    treeNode->isFunc = false;
+    if(token != NULL)
+        treeNode->tokenStr = token->tokenStr;
 
+    treeNode->isFunc = false;
+    treeNode->isConst = false;
+    treeNode->isParam = false;
+    treeNode->numParams = 0;
+    treeNode->isUsed = false;
+    treeNode->isIo = false;
     treeNode->attrSet = false;
 
     return treeNode;
@@ -37,15 +43,23 @@ TreeNode *newStmtNode(StmtKind kind, TokenData *token, TreeNode *c0, TreeNode *c
     treeNode->child[2] = c2;
     treeNode->sibling = NULL;
 
-    treeNode->lineno = token->lineNum;
+    if (token != NULL)
+        treeNode->lineno = token->lineNum;
 
     treeNode->nodekind = StmtK;
 
+    if(token != NULL)
+        treeNode->tokenStr = token->tokenStr;
     treeNode->subkind.stmt = kind;
     treeNode->isRangeK = false;
     treeNode->isRangeKBy = false;
     treeNode->expType = UndefinedType;
     treeNode->isFunc = false;
+    treeNode->isConst = false;
+    treeNode->isParam = false;
+    treeNode->numParams = 0;
+    treeNode->isUsed = false;
+    treeNode->isIo = false;
 
     treeNode->attrSet = false;
 
@@ -60,12 +74,20 @@ TreeNode *newExpNode(ExpKind kind, TokenData *token, TreeNode *c0, TreeNode *c1,
     treeNode->child[2] = c2;
     treeNode->sibling = NULL;
 
-    treeNode->lineno = token->lineNum;
+    if (token != NULL)
+        treeNode->lineno = token->lineNum;
 
     treeNode->nodekind = ExpK;
 
+    if(token != NULL)
+        treeNode->tokenStr = token->tokenStr;
     treeNode->subkind.exp = kind;
     treeNode->isFunc = false;
+    treeNode->isConst = false;
+    treeNode->isParam = false;
+    treeNode->numParams = 0;
+    treeNode->isUsed = false;
+    treeNode->isIo = false;
     treeNode->expType = UndefinedType;
 
     treeNode->attrSet = false;
@@ -74,11 +96,13 @@ TreeNode *newExpNode(ExpKind kind, TokenData *token, TreeNode *c0, TreeNode *c1,
 
     if (kind == OpK)
     {
-        treeNode->op = token->tokenClass;
+        if (token != NULL)
+            treeNode->op = token->tokenClass;
         treeNode->isOp = true;
     }
     if (kind == AssignK)
-        treeNode->op = token->tokenClass;
+        if (token != NULL)
+            treeNode->op = token->tokenClass;
 
     return treeNode;
 }
@@ -216,6 +240,7 @@ void printTree(TreeNode *node, int indentLevel)
                         printf("internal error NULL REACHED in attrName Paramk\n");
                         break;
                     }
+
 
                     if (node->isArray)
                         printf("Parm: %s is array of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
@@ -429,9 +454,11 @@ void printTypedTree(TreeNode *node, int indentLevel)
     }
 }
 
+extern int NUM_ERRORS;
+
 TreeNode *addSibling(TreeNode *t, TreeNode *s)
 {
-    if (s == NULL)
+    if (s == NULL && NUM_ERRORS == 0)
     {
         printf("ERROR(SYSTEM): never add a NULL to a sibling list.\n");
         exit(1);
@@ -439,8 +466,8 @@ TreeNode *addSibling(TreeNode *t, TreeNode *s)
     if (t != NULL)
     {
         TreeNode *tmp;
-
         tmp = t;
+
         while (tmp->sibling != NULL)
             tmp = tmp->sibling;
         tmp->sibling = s;
@@ -455,7 +482,6 @@ void setType(TreeNode *t, ExpType type, bool isStatic)
     {
         t->expType = type;
         t->isStatic = isStatic;
-
         t = t->sibling;
     }
 }

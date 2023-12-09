@@ -98,7 +98,6 @@ typedef struct treeNode
     bool isRangeK;
     int depth;
     bool isFunc;
-    bool isInitErrorThrown;
     OpKind op;
     bool isOp;
     bool attrSet;
@@ -108,9 +107,13 @@ typedef struct treeNode
     bool isStatic;
     bool isUsed;
     bool isInit;
-    char* tokenStr
-    bool undeclared
-    bool isConst
+    char* tokenStr;
+    bool undeclared;
+    bool isConst;
+    bool isIo;
+    bool isParam;
+    int numParams;
+    bool isInitErrorThrown;
 
 } TreeNode;
 
