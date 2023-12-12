@@ -1,4 +1,4 @@
-# Sprint x Report (8/26/21 - 9/24/2021)
+# Sprint 3 Report (11/6/2023 - 12/11/2023)
 
 ## What's New (User Facing)
 ### AI Team
