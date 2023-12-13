@@ -30,17 +30,20 @@ The Non-AI team still needs to finish working on the 7th homework assignment. We
 ### AI Team
 Here are links to the issues that we completed in this sprint:
 
- * URL of issue 1
- * URL of issue 2
- * URL of issue n
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/19
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/20
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/21
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/35
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/36
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/37
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/39
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/40
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/41
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/46
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/47
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/57
 
- Reminders (Remove this section when you save the file):
-  * Each issue should be assigned to a milestone
-  * Each completed issue should be assigned to a pull request
-  * Each completed pull request should include a link to a "Before and After" video
-  * All team members who contributed to the issue should be assigned to it on GitHub
-  * Each issue should be assigned story points using a label
-  * Story points contribution of each team member should be indicated in a comment
+
 
 ### Non-AI Team
 Here are links to the issues that we completed in this sprint:
@@ -69,9 +72,7 @@ Here are links to the issues that we completed in this sprint:
  ### AI Team
  Here are links to issues we worked on but did not complete in this sprint:
  
- * URL of issue 1 <<One sentence explanation of why issue was not completed>>
- * URL of issue 2 <<One sentence explanation of why issue was not completed>>
- * URL of issue n <<One sentence explanation of why issue was not completed>>
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/56 <<We have not had enough time between the end of homework 5 and Sprint 3 due date>>
  
  Examples of explanations (Remove this section when you save the file):
   * "We ran into a complication we did not anticipate (explain briefly)." 
