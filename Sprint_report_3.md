@@ -1,10 +1,11 @@
-# Sprint 3 Report (11/6/2023 - 12/11/2023)
+# Sprint 3 Report (11/6/2023 - 12/12/2023)
 
 ## What's New (User Facing)
 ### AI Team
- * Feature 1 or Bug Fix 1
- * Feature 2 or Bug Fix 2
- * Feature n or Bug Fix n
+ * Homework 2
+ * Homework 3
+ * Homework 4
+ * Homework 5
 
 ### Non-AI Team
  * Homework 3 
@@ -14,14 +15,14 @@
 
 ## Work Summary (Developer Facing)
 ### AI Team
-Provide a one paragraph synposis of what your team accomplished this sprint. Don't repeat the "What's New" list of features. Instead, help the instructor understand how you went about the work described there, any barriers you overcame, and any significant learnings for your team.
+The AI team finished homeworks 2-5 this Sprint. In Sprint 2, we had significant issues using ChatGPT. We were able to complete some work with the assistance of ChatGPT since then. While GPT has struggled with the coursework, it has been able to clarify answers, and provide some information that we are able to use. However, the improvement seems  minimal in the knowledge it has for our course. Every time GPT updates we have to change our approach. Limitations and alterations that have been implemented can significantly impact the approach needed to receive a positive answer. It takes nearly up to a week in some instances to understand how to re-approach it, but we have significantly improved our ability to adapt with the changes. We have learned as the homeworks have increased in complexity, there are too many files for GPT to comprehend. Even with the 10 file limit, usually GPT only looks at one or two files. Now we are more focused on snippets of code or questions strictly through chat as we have found that it increases the probability of a working response. 
 
 ### Non-AI Team
 The Non-AI team finished homework 3, which was begun in Sprint 2, along with starting and finishing homeworks 4 through 6. We were able to continuously build up on the knowledge we gained from each of the previous homework assignments to complete homeworks 4 through 6 at a faster pace than the previous sprints. 
 
 ## Unfinished Work
 ### AI Team
-If applicable, explain the work you did not finish in this sprint. For issues/user stories in the current sprint that have not been closed, (a) any progress toward completion of the issues has been clearly tracked (by checking the checkboxes of  acceptance criteria), (b) a comment has been added to the issue to explain why the issue could not be completed (e.g., "we ran out of time" or "we did not anticipate it would be so much work"), and (c) the issue is added to a subsequent sprint, so that it can be addressed later.
+The AI team currently is working on the 6th homework assignment. Our current plan is to have the 6th and 7th homework assignments completed over the break. ChatGPT has significantly degraded in the ability of assisting with the complexity of the assignments. 
 
 ### Non-AI Team
 The Non-AI team still needs to finish working on the 7th homework assignment. We plan to have this finished over the upcoming break.
@@ -59,14 +60,6 @@ Here are links to the issues that we completed in this sprint:
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/49
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/50
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/52
-
- Reminders (Remove this section when you save the file):
-  * Each issue should be assigned to a milestone
-  * Each completed issue should be assigned to a pull request
-  * Each completed pull request should include a link to a "Before and After" video
-  * All team members who contributed to the issue should be assigned to it on GitHub
-  * Each issue should be assigned story points using a label
-  * Story points contribution of each team member should be indicated in a comment
  
  ## Incomplete Issues/User Stories
  ### AI Team
@@ -79,19 +72,16 @@ Here are links to the issues that we completed in this sprint:
  Here are links to issues we worked on but did not complete in this sprint:
  
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/51 <<We have not had enough time between the end of homework 6 and Sprint 3 due date.>>
- 
- Examples of explanations (Remove this section when you save the file):
-  * "We ran into a complication we did not anticipate (explain briefly)." 
-  * "We decided that the feature did not add sufficient value for us to work on it in this sprint (explain briefly)."
-  * "We could not reproduce the bug" (explain briefly).
-  * "We did not get to this issue because..." (explain briefly)
+
 
 ## Code Files for Review
 ### AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
- * [Name of code file 1](https://github.com/your_repo/file_extension)
- * [Name of code file 2](https://github.com/your_repo/file_extension)
- * [Name of code file 3](https://github.com/your_repo/file_extension)
+ * [HW2](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/AI/hw2)
+ * [HW3](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/AI/HW3)
+ * [HW4](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/AI/HW4)
+ * [HW5](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/AI/HW5)
+
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
  * [hw4](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw4)
@@ -101,19 +91,17 @@ Please review the following code files, which were actively developed during thi
 ## Retrospective Summary
 ### AI Team
 Here's what went well:
-  * Item 1
-  * Item 2
-  * Item x
+  * Homework 2 Completion
+  * Homework 3 Completion
+  * Homework 4 Completion
+  * Homework 5 Completion
  
 Here's what we'd like to improve:
-   * Item 1
-   * Item 2
-   * Item x
+   * Proficiency in understanding ChatGPT's updated limitations 
   
 Here are changes we plan to implement in the next sprint:
-   * Item 1
-   * Item 2
-   * Item x
+   * We will begin our new web development course
+   * We will switch to the Non-AI team
 ### Non-AI Team
 Here's what went well:
   * Homework 3
