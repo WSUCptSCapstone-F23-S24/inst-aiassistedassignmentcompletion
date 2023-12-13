@@ -74,11 +74,7 @@ Here are links to the issues that we completed in this sprint:
  
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/56 <<We have not had enough time between the end of homework 5 and Sprint 3 due date>>
  
- Examples of explanations (Remove this section when you save the file):
-  * "We ran into a complication we did not anticipate (explain briefly)." 
-  * "We decided that the feature did not add sufficient value for us to work on it in this sprint (explain briefly)."
-  * "We could not reproduce the bug" (explain briefly).
-  * "We did not get to this issue because..." (explain briefly)
+
  ### Non-AI Team
  Here are links to issues we worked on but did not complete in this sprint:
  
