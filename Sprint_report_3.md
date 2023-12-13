@@ -85,8 +85,8 @@ Please review the following code files, which were actively developed during thi
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
  * [hw4](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw4)
- * [hw5]([https://github.com/your_repo/file_extension](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw5/hw5))
- * [hw6]([https://github.com/your_repo/file_extension](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw6))
+ * [hw5](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw5/hw5)
+ * [hw6](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw6)
  
 ## Retrospective Summary
 ### AI Team
