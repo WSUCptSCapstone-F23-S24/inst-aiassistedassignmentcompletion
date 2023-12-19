@@ -1,0 +1,43 @@
+#ifndef CODEGENERATION_H
+#define CODEGENERATION_H
+
+#include "AST.h"
+#include "symbolTable.h"
+
+// generate code and emit init and start
+void generateCode(TreeNode* node, char* inputFile);
+void emitAbout(char* inputFile);
+void emitIO(TreeNode* node);
+void emitInput(TreeNode* node);
+void emitInit(TreeNode* node);
+void emitStart(TreeNode* node);
+
+// emit decl functions
+void emitDecl(TreeNode* node);
+void emitFunc(TreeNode* node);
+void emitVar(TreeNode* node);
+void emitParam(TreeNode* node);
+
+// emit exp functions
+void emitExp(TreeNode* node);
+void emitAssign(TreeNode* node, TreeNode* lhs, TreeNode* rhs);
+void emitOp(TreeNode* node, TreeNode* lhs, TreeNode* rhs);
+void emitCall(TreeNode* node, TreeNode* callLookUp);
+void emitConstant(TreeNode* node);
+void emitId(TreeNode* node);
+
+// emit stmt functions
+void emitStmt(TreeNode* node);
+void emitIf(TreeNode* node, int elseLocation);
+void emitWhile(TreeNode* node, int whileLocation, int tmpBlock, int whileSkip, int LDA_Location);
+void emitReturn(TreeNode* node);
+void emitBreak(TreeNode* node);
+void emitFor(TreeNode* node, int forOffset, int forLocation, int forSkip);
+void emitRange(TreeNode* node);
+void emitCompound(TreeNode* node);
+
+// emit type functions
+void emitGlobalOffsetsAndStats(TreeNode* node);
+
+
+#endif  //CODEGENERATION_H
