@@ -1,4 +1,4 @@
-# Sprint 3 Report (11/6/2023 - 12/12/2023)
+# Sprint 3 Report (11/6/2023 - 12/19/2023)
 
 ## What's New (User Facing)
 ### AI Team
@@ -12,6 +12,7 @@
  * Homework 4
  * Homework 5
  * Homework 6
+ * Homework 7
 
 ## Work Summary (Developer Facing)
 ### AI Team
@@ -59,6 +60,7 @@ Here are links to the issues that we completed in this sprint:
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/48
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/49
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/50
+ * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/51
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/52
  
  ## Incomplete Issues/User Stories
@@ -88,7 +90,8 @@ Please review the following code files, which were actively developed during thi
  * [hw4](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw4)
  * [hw5](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw5/hw5)
  * [hw6](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw6)
- 
+ * [hw7](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI/hw7)
+
 ## Retrospective Summary
 ### AI Team
 Here's what went well:
