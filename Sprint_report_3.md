@@ -26,7 +26,8 @@ The Non-AI team finished homework 3, which was begun in Sprint 2, along with sta
 The AI team currently is working on the 6th homework assignment. Our current plan is to have the 6th and 7th homework assignments completed over the break. ChatGPT has significantly degraded in the ability of assisting with the complexity of the assignments. 
 
 ### Non-AI Team
-The Non-AI team still needs to finish working on the 7th homework assignment. We plan to have this finished over the upcoming break.
+N/A, we completed the work given the extension from the professor
+
 
 ## Completed Issues/User Stories
 ### AI Team
