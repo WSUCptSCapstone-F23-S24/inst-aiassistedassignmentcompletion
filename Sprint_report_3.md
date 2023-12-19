@@ -71,10 +71,7 @@ Here are links to the issues that we completed in this sprint:
  
 
  ### Non-AI Team
- Here are links to issues we worked on but did not complete in this sprint:
- 
- * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/51 <<We have not had enough time between the end of homework 6 and Sprint 3 due date.>>
-
+ We ended up completing all the issues given the extra time from the professor.
 
 ## Code Files for Review
 ### AI Team
