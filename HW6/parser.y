@@ -5,7 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "scanType.h"
-#include "node.h"
+#include "Tree.h"
 #include "ourgetopt.h"
 #include "symbolTable.h"
 #include "semantic.h"
@@ -41,8 +41,8 @@ TreeNode *syntaxTree;
     TreeNode *treenode;
 }
 
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST
-%token <tokenData> INT BOOL CHAR IF THEN ELSE WHILE DO FOR TO
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST 
+%token <tokenData> INT BOOL CHAR IF THEN ELSE WHILE DO FOR TO 
 %token <tokenData> BY RETURN BREAK STATIC NOT AND OR TRUE FALSE
 %token <tokenData> OPEN_BRACE CLOSE_BRACE OPEN_PAREN CLOSE_PAREN
 %token <tokenData> SEMI COMMA LESS GREATER LEQ GEQ
@@ -52,7 +52,8 @@ TreeNode *syntaxTree;
 %token <tokenData> MINUS CHSIGN SIZEOF
 
 
-%type <treenode> program declList decl
+
+%type <treenode> program declList decl 
 
 %type <treenode> varDecl scopedVarDecl varDeclList varDeclInit varDeclId
 
@@ -61,10 +62,10 @@ TreeNode *syntaxTree;
 %type <treenode> stmt expStmt compoundStmt localDecls stmtList
 %type <treenode> iterRange returnStmt breakStmt
 
-%type <treenode> exp simpleExp andExp unaryRelExp relExp  minMaxExp
-%type <treenode> sumExp  mulExp unaryExp factor mutable immutable
-%type <treenode> call args argList constant matched unmatched
-%type <treenode> unmatchedSelectStmt matchedSelectStmt matchedIterStmt unmatchedIterStmt
+%type <treenode> exp simpleExp andExp unaryRelExp relExp  minMaxExp  
+%type <treenode> sumExp  mulExp unaryExp factor mutable immutable 
+%type <treenode> call args argList constant matched unmatched 
+%type <treenode> unmatchedSelectStmt matchedSelectStmt matchedIterStmt unmatchedIterStmt 
 
 %type <tokenData> unaryOp relOp sumOp mulOp minMaxOp assignOp
 
@@ -78,17 +79,17 @@ TreeNode *syntaxTree;
 program         : declList {syntaxTree = $1;}
                 ;
 
-declList        : declList decl  {
+declList        : declList decl  { 
                                    $$ = addSibling($1,$2);
-                                   ;
-                                   }
+                                   
+                                   }            
                 | decl {$$ = $1;}
                 ;
 
 decl            : varDecl {$$ = $1;}
                 | funDecl {$$ = $1;}
                 | error {$$ = NULL;}
-                ;
+                ;  
 
 varDecl         : typeSpec varDeclList SEMI { setType($2,$1,false); $$ = $2;}
                 | error varDeclList SEMI {$$ = NULL; yyerrok;}
@@ -101,10 +102,10 @@ scopedVarDecl   : STATIC typeSpec varDeclList SEMI  { setType($3,$2,true);
                 | typeSpec varDeclList SEMI {   setType($2,$1,false);
                                                 $$ = $2;
                                                 yyerrok;
-                                            }
+                                            }                                       
                 ;
 
-varDeclList     : varDeclList COMMA varDeclInit   {
+varDeclList     : varDeclList COMMA varDeclInit   { 
                                                   $$ = addSibling($1,$3); yyerrok;}
                 | varDeclInit { $$ = $1; }
                 | varDeclList COMMA error {$$ = NULL;}
@@ -113,7 +114,12 @@ varDeclList     : varDeclList COMMA varDeclInit   {
 
 varDeclInit     : varDeclId {$$ = $1;}
                 | varDeclId COLON simpleExp     {$$ = $1;
-                                                 if($$ != NULL && $3 != NULL)$$->child[0] = $3;}
+                                                 if($$ != NULL && $3 != NULL)
+                                                 {
+                                                    $$->child[0] = $3;
+                                                    $$->size = $1->size;
+                                                 }
+                                                 }
                 | error COLON simpleExp {$$ = NULL; yyerrok;}
                 ;
 
@@ -121,13 +127,15 @@ varDeclId       : ID                                    {$$ = newDeclNode(VarK,U
                                                          $$->attr.name = $1->tokenStr;
                                                          $$->isArray = false;
                                                          $$->attrSet = true;
+                                                         $$->size = 1;
+
 
                                                         }
                 | ID OPEN_BRACK NUMCONST CLOSE_BRACK    {$$ = newDeclNode(VarK,UndefinedType,$1);
                                                          $$->attr.name = $1->tokenStr;
                                                          $$->attrSet = true;
                                                          $$->isArray = true;
-                                                         $$->arraySize = $3->nValue;
+                                                         $$->size = $3->nValue + 1;
                                                         }
                 | ID OPEN_BRACK error {$$= NULL;}
                 | error CLOSE_BRACK {$$ = NULL; yyerrok;}
@@ -138,14 +146,15 @@ typeSpec        : INT {$$ = Integer;}
                 | CHAR {$$ = Char;}
                 ;
 
+
 funDecl         : typeSpec ID OPEN_PAREN params CLOSE_PAREN stmt    {$$ = newDeclNode(FuncK,$1,$2,$4,$6);
                                                                     $$->attr.name = $2->tokenStr;
-                                                                    $$->attrSet = true;
-
+                                                                    $$->attrSet = true;                                                                      
+                                                                     
                                                                     }
                 | ID OPEN_PAREN params CLOSE_PAREN stmt             {$$ = newDeclNode(FuncK,Void,$1,$3,$5);
                                                                     $$->attr.name = $1->tokenStr;
-                                                                    $$->attrSet = true;
+                                                                    $$->attrSet = true;                                                                     
                                                                     }
                 | typeSpec error {$$ = NULL;}
                 | typeSpec ID OPEN_PAREN error {$$ = NULL;}
@@ -154,7 +163,7 @@ funDecl         : typeSpec ID OPEN_PAREN params CLOSE_PAREN stmt    {$$ = newDec
                 ;
 
 params          : paramList {$$ = $1;}
-                |  {$$ = NULL;}
+                |  {$$ = NULL;} 
                 ;
 
 paramList       : paramList SEMI paramTypeList {
@@ -178,14 +187,15 @@ paramIdList     : paramIdList COMMA paramId {
 paramId         : ID                        {$$ = newDeclNode(ParamK,UndefinedType,$1);
                                             $$->attr.name = $1->tokenStr;
                                             $$->attrSet = true;
-                                            $$->isArray = false;
+                                            $$->isArray = false;                                                
                                             }
                 | ID OPEN_BRACK CLOSE_BRACK {$$ = newDeclNode(ParamK,UndefinedType,$1);
                                             $$->attr.name = $1->tokenStr;
-                                            $$->attrSet = true;
-                                            $$->isArray = true;
+                                            $$->attrSet = true; 
+                                            $$->isArray = true;                                              
                                             }
                 ;
+
 
 stmt            : matched   {$$ = $1;}
                 | unmatched {$$ = $1;}
@@ -214,7 +224,7 @@ compoundStmt    : OPEN_BRACE localDecls stmtList CLOSE_BRACE    { $$ = newStmtNo
                                                                   $$->attrSet = true;
                                                                   yyerrok;
                                                                 }
-
+                                                                    
                 ;
 
 localDecls      : localDecls scopedVarDecl {
@@ -224,7 +234,7 @@ localDecls      : localDecls scopedVarDecl {
 
 stmtList        : stmtList stmt         {
                                         if($2 != NULL)$$ = addSibling($1,$2);else $$=$1;}
-                | {$$ = NULL;}
+                | {$$ = NULL;} 
                 ;
 
 matchedSelectStmt   : IF simpleExp THEN matched ELSE matched    { $$ = newStmtNode(IfK,$1,$2,$4,$6);
@@ -252,7 +262,7 @@ unmatchedIterStmt   : WHILE simpleExp DO unmatched              { $$ = newStmtNo
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-                    | FOR ID ASS iterRange DO unmatched         {
+                    | FOR ID ASS iterRange DO unmatched         { 
                                                                   treeNode *node = newDeclNode(VarK,Integer,$2);
                                                                   node->attr.string = $2->tokenStr;
                                                                   node->attrSet = true;
@@ -267,12 +277,12 @@ matchedIterStmt     : WHILE simpleExp DO matched                { $$ = newStmtNo
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-
-                    | FOR ID ASS iterRange DO matched           {
+                                                                
+                    | FOR ID ASS iterRange DO matched           { 
                                                                   treeNode *node = newDeclNode(VarK,Integer,$2);
                                                                   node->attr.string = $2->tokenStr;
                                                                   node->attrSet = true;
-
+                        
                                                                   $$ = newStmtNode(ForK,$1,node,$4,$6);
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
@@ -281,13 +291,14 @@ matchedIterStmt     : WHILE simpleExp DO matched                { $$ = newStmtNo
                     | WHILE error {$$ = NULL;}
                     | FOR ID ASS error DO matched {$$ = NULL; yyerrok;}
                     | FOR error {$$ = NULL;}
-                    ;
+                    ;      
+
 
 iterRange       : simpleExp TO simpleExp                        { $$ = newStmtNode(RangeK,$2,$1,$3);
                                                                   $$->attr.string = $2->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-
+                                                                
                 | simpleExp TO simpleExp BY simpleExp           { $$ = newStmtNode(RangeK,$4,$1,$3,$5);
                                                                   $$->attr.string = $4->tokenStr;
                                                                   $$->attrSet = true;
@@ -357,7 +368,7 @@ andExp          : andExp AND unaryRelExp                        { $$ = newExpNod
                 | unaryRelExp   {$$ = $1;}
                 | andExp AND error {$$ = NULL;}
                 ;
-
+                
 unaryRelExp     : NOT unaryRelExp                               { $$ = newExpNode(OpK,$1,$2);
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
@@ -438,10 +449,10 @@ factor          : immutable {$$ = $1; }
 mutable         : ID                                            { $$ = newExpNode(IdK,$1);
                                                                   $$->attr.name = $1->tokenStr;
                                                                   $$->attrSet = true;
-                                                                  $$->isArray = false;
+                                                                  $$->isArray = false;  
                                                                 }
-                | ID OPEN_BRACK exp CLOSE_BRACK                 {
-                                                                  TreeNode * node = newExpNode(IdK,$1);
+                | ID OPEN_BRACK exp CLOSE_BRACK                 { 
+                                                                  TreeNode * node = newExpNode(IdK,$1); 
                                                                   node->attr.name = $1->tokenStr;
                                                                   node->attrSet = true;
                                                                   node->isArray = true;
@@ -452,7 +463,7 @@ mutable         : ID                                            { $$ = newExpNod
                                                                 }
                 ;
 
-immutable       : OPEN_PAREN exp CLOSE_PAREN  { $$ = $2; yyerrok;}
+immutable       : OPEN_PAREN exp CLOSE_PAREN  { $$ = $2; yyerrok;} 
                 | call  {$$ = $1;}
                 | constant {$$ = $1;}
                 | OPEN_PAREN error {$$ = NULL;}
@@ -461,7 +472,7 @@ immutable       : OPEN_PAREN exp CLOSE_PAREN  { $$ = $2; yyerrok;}
 call            : ID OPEN_PAREN args CLOSE_PAREN    { $$ = newExpNode(CallK,$1,$3);
                                                       $$->attr.name = $1->tokenStr;
                                                       $$->attrSet = true;
-
+                                                      
                                                     }
                 | error OPEN_PAREN {$$ = NULL; yyerrok;}
 
@@ -491,25 +502,28 @@ constant        : NUMCONST      { $$ = newExpNode(ConstantK,$1);
                                   $$->unionType = cvalue;
                                 }
                 | STRINGCONST   { $$ = newExpNode(ConstantK,$1);
-                                  $$->attr.string = $1->sValue;
+                                  $$->attr.string = $1->sValue; 
                                   $$->attrSet = true;
                                   $$->expType = Char;
-                                  $$->isArray = true;
+                                  $$->isArray = true; 
+                                  $$->size = strlen($1->sValue) + 1; 
                                   $$->unionType = string;
                                 }
                 | TRUE          { $$ = newExpNode(ConstantK,$1);
                                   $$->attr.value = $1->nValue;
                                   $$->attrSet = true;
-                                  $$->expType = Boolean;
+                                  $$->expType = Boolean; 
                                   $$->unionType = value;
                                 }
                 | FALSE         { $$ = newExpNode(ConstantK,$1);
                                   $$->attr.value = $1->nValue;
                                   $$->attrSet = true;
                                   $$->expType = Boolean;
-                                  $$->unionType = value;
+                                  $$->unionType = value; 
                                 }
                 ;
+
+
 
 
 %%
@@ -517,31 +531,43 @@ extern int yydebug;
 
 
 
+
+#define PRINT_MEM_LOC true
+
+#define DONT_PRINT_MEM_LOC false
+
 int main(int argc, char *argv[])
 {
     char c;
-    bool printflag = false;
-    bool errorflag = false;
+    bool printFlag = false;
+    bool printFlagOld = false;
+    bool errorFlag = false;
+    bool memFlag = false;
     extern int optind;
     extern int NUM_WARNINGS;
     extern int NUM_ERRORS;
-
+    extern int globalOffset;
+    
     initErrorProcessing();
 
     while(1)
     {
-        while((c = ourGetopt(argc,argv,(char*)"Ppd")) != -1)
+        while((c = ourGetopt(argc,argv,(char*)"PpdM")) != -1)
         {
             switch(c)
             {
                 case 'd':
-                    errorflag = true;
+                    errorFlag = true;
                     break;
                 case 'p':
-                    printflag = true;
+                    printFlagOld = true;
                     break;
                 case 'P':
-                    printflag = true;
+                    printFlag = true;
+                    break;
+                case 'M':
+                    printFlag = true;
+                    memFlag = true;
                     break;
                 default:
                     fprintf(stderr,"Usage: -p(print tree) -d(yydebug enable) are the only supported options\n./c- -[p|d] -[d|p] [FILENAME]\n");
@@ -551,8 +577,10 @@ int main(int argc, char *argv[])
 
         if(optind < argc)
         {
-            if ((yyin = fopen(argv[optind], "r"))) {}
-            else
+
+            if ((yyin = fopen(argv[optind], "r"))) {
+            }
+            else 
             {
                 printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", argv[optind]);
                 NUM_ERRORS++;
@@ -568,30 +596,49 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    if(errorflag)
+    if(errorFlag)
         yydebug = 1;
 
     yyparse();
-    SymbolTable *symTab;
+    SymbolTable *symTab; 
     symTab = new SymbolTable();
-    if(printflag && NUM_ERRORS == 0)
+    if(printFlag && NUM_ERRORS == 0)
     {
       checkTree2(symTab,syntaxTree,false,NULL);
       treeNode *tmpLookupNode = (treeNode *) symTab->lookupGlobal(std::string("main"));
-
+      
       if( (tmpLookupNode == NULL || tmpLookupNode->child[0] != NULL) || !tmpLookupNode->isFunc)
       {
-
+        
         printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
         NUM_ERRORS++;
       }
+      if(NUM_ERRORS == 0)
+      {
+          if(memFlag)
+        {
+          printTypedTree(syntaxTree,0, PRINT_MEM_LOC);
+          printf("Offset for end of global space: %d\n",globalOffset);
+        }
 
-        if(NUM_ERRORS == 0)
-          printTypedTree(syntaxTree,0);
+        else if(!memFlag)
+        {
+          printTypedTree(syntaxTree,0, DONT_PRINT_MEM_LOC);
+        }
+      }
+        
+          
 
       printf("Number of warnings: %d\n",NUM_WARNINGS);
       printf("Number of errors: %d\n",NUM_ERRORS);
 
+    }
+    else if(printFlagOld && NUM_ERRORS == 0)
+    {
+     
+        printTree(syntaxTree,0);
+        printf("Number of warnings: %d\n",NUM_WARNINGS);
+        printf("Number of errors: %d\n",NUM_ERRORS);
     }
     else
     {
