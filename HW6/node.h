@@ -3,8 +3,6 @@
 #include "scanType.h"
 #include <cstddef>
 
-#define MAXCHILDREN 3
-
 typedef int OpKind;
 
 enum UnionType
@@ -61,7 +59,7 @@ typedef enum
     UndefinedType
 }ExpType;
 
-enum VarKind
+enum ScopeKind
 {
     None,
     Local,
@@ -70,12 +68,13 @@ enum VarKind
     LocalStatic
 };
 
+#define MAXCHILDREN 3
+
 typedef struct treeNode
 {
     struct treeNode *parent;
     struct treeNode *child[MAXCHILDREN];
     struct treeNode *sibling;
-
 
     int lineno;
     NodeKind nodekind;
@@ -93,28 +92,30 @@ typedef struct treeNode
         char *string;
         char *name;
     } attr;
+
     UnionType unionType;
     bool isRangeKBy;
     bool isRangeK;
     int depth;
     bool isFunc;
+    bool isParam;
+    int numParams;
+    bool undeclared;
+    bool isIo;
+    ScopeKind scope;
+    int loc;
+    char *tokenStr;
+    bool isInitErrorThrown;
     OpKind op;
     bool isOp;
     bool attrSet;
     ExpType expType;
     bool isArray;
-    int arraySize;
+    int size;
     bool isStatic;
     bool isUsed;
     bool isInit;
-    char* tokenStr;
-    bool undeclared;
     bool isConst;
-    bool isIo;
-    bool isParam;
-    int numParams;
-    bool isInitErrorThrown;
-
 } TreeNode;
 
 TreeNode *newDeclNode(DeclKind kind,
@@ -137,11 +138,10 @@ TreeNode *newExpNode(ExpKind kind,
                      TreeNode *c2 = NULL);
 
 void printTree(TreeNode *node,int indentLevel);
-void printTypedTree(TreeNode *node,int indentLevel);
+void printTypedTree(TreeNode *node, int indentLevel, bool memPrintFlag);
 void dumpNode(TreeNode *node);
 TreeNode *addSibling(TreeNode *t, TreeNode *s);
 void setType(TreeNode *t, ExpType type, bool isStatic);
 void convertExpTypeToString(ExpType type, char *string);
 void printSpaces(int indentLevel);
-
 #endif
