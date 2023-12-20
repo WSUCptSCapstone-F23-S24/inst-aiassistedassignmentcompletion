@@ -1,4 +1,5 @@
 # Sprint 3 Report (11/6/2023 - 12/19/2023)
+## Sprint Video [Link](https://youtu.be/PIoVAoDwEiE)
 
 ## What's New (User Facing)
 ### AI Team
