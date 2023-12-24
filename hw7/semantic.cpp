@@ -344,9 +344,6 @@ void analyzeVar(TreeNode* node, int& nErrors, int& nWarnings)
 
         if(node->child[0]->subkind.exp == IdK || node->child[0]->subkind.exp == CallK)
         {
-            //printError(32, node->lineno, 0, node->attr.name, NULL, NULL, 0);
-            
-            //changed on 4/30/23
             printf("VarK initializer checks: %s %d\n", node->child[0]->attr.name, node->lineno);
 
         }
@@ -360,7 +357,6 @@ void analyzeVar(TreeNode* node, int& nErrors, int& nWarnings)
                 if(strcmp(node->child[0]->attr.name, "-") && !node->isArray)
                 {
                     printError(32, node->lineno, 0, node->attr.name, NULL, NULL, 0);
-                    //changed on 4/30/23
                     printf("VarK initializer checks: %s %d\n", node->child[0]->attr.name, node->lineno);
 
                 }
@@ -888,7 +884,6 @@ void analyzeRange(TreeNode* node, int& nErrors, int& nWarnings)
 
             analyze(node->child[i], nErrors, nWarnings);
             
-            //updated on 4/30/23
             localOffset--;
         }
     }
