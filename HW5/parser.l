@@ -9,9 +9,8 @@ static int lineNumber = 1;
 int line;
 char *lastToken;
 
-extern int NUM_ERRORS;
-extern int NUM_WARNINGS;
-
+extern int ERROR_COUNT;
+extern int WARNING_COUNT;
 
 static void convertEscapeStr(char *inBuff, char *outBuff)
 {
@@ -25,7 +24,6 @@ static void convertEscapeStr(char *inBuff, char *outBuff)
     size_t inBuffLen = strlen(inBuff);
     for(size_t i = 1; i < inBuffLen; i++)
     {
-
         if(inBuff[i] == '"')
         {
             outBuff[j] = '\0';
@@ -62,58 +60,8 @@ static void convertEscapeStr(char *inBuff, char *outBuff)
         lineNumber,
         inBuff[i]);
 
-         NUM_ERRORS++;
+         ERROR_COUNT++;
     }
-}
-
-static void convertEscapeChar(char *inBuff, char *outBuff)
-{
-    if(inBuff[0] != '\'')
-    {
-        printf("INTERNAL SCANNING ERROR: A non quoted character was allowed as a token\n");
-        exit(-1);
-    }
-
-    int j = 0;
-    size_t i = 0;
-    size_t inBuffLen = strlen(inBuff);
-    for(i = 1; i < inBuffLen; i++)
-    {
-
-        if(inBuff[i] == '\'')
-        {
-            outBuff[j] = '\0';
-            return;
-        }
-
-        if(inBuff[i] != '\\')
-        {
-            outBuff[j++] = inBuff[i];
-            continue;
-        }
-
-        else
-        {
-            i++;
-            if(inBuff[i] == 'n')
-            {
-                outBuff[j++] = '\n';
-            }
-            else if(inBuff[i] == '0')
-            {
-                outBuff[j++] = '\0';
-            }
-            else
-            {
-                outBuff[j++] = inBuff[i];
-            }
-        }
-    }
-
-
-    printf("INTERNAL SCANNING ERROR: inBuff Character is not closed by a \'\n");
-    printf("I[%d] j[%d] outBuff[%s]\n",(int)i,j,outBuff);
-    exit(-1);
 }
 
 static int setValue(int lineNumber, int tokenClass, char *svalue)
@@ -128,7 +76,6 @@ static int setValue(int lineNumber, int tokenClass, char *svalue)
 
     if (tokenClass == NUMCONST)
     {
-
         yylval.tokenData->nValue = atof(svalue);
     }
     else if (tokenClass == CHARCONST)
@@ -142,9 +89,10 @@ static int setValue(int lineNumber, int tokenClass, char *svalue)
                     ((int)strlen(svalue) -2),
                     svalue);
 
-                NUM_WARNINGS++;
+                WARNING_COUNT++;
             }
         }
+
         yylval.tokenData->sValue = strdup(svalue);
         convertEscapeChar(yylval.tokenData->sValue,yylval.tokenData->sValue);
         yylval.tokenData->cValue = yylval.tokenData->sValue[0];
@@ -165,10 +113,6 @@ static int setValue(int lineNumber, int tokenClass, char *svalue)
 
     return tokenClass;
 }
-
-
-
-
 
 %}
 
@@ -246,12 +190,12 @@ false                     {return setValue(lineNumber,FALSE,yytext);}
 {escapedStringConst}      {return setValue(lineNumber,STRINGCONST,yytext);}
 {charconst}               {if(((int)strlen(yytext)-2)!=0) return setValue(lineNumber,CHARCONST,yytext);else printf("ERROR(%d): Empty character ''.  Characters ignored.\n",
                                                                                                                 lineNumber);
-                                                                                                                NUM_ERRORS++;}
+                                                                                                                ERROR_COUNT++;}
 {escapedCharConst}        {return setValue(lineNumber,CHARCONST,yytext);}
 {numbers}+                {return setValue(lineNumber,NUMCONST,yytext);}
 {ID}                      {return setValue(lineNumber,ID,yytext);}
 
-.                         {printf("ERROR(%d): Invalid or misplaced input character: '%c'. Character Ignored.\n",lineNumber,yytext[0]); NUM_ERRORS++;}
+.                         {printf("ERROR(%d): Invalid or misplaced input character: '%c'. Character Ignored.\n",lineNumber,yytext[0]); ERROR_COUNT++;}
 
 <INITIAL><<EOF>>         {line = lineNumber; return 0;}
 %%

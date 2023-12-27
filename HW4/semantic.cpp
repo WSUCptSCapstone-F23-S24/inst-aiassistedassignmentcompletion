@@ -8,39 +8,18 @@
 #include <string>
 #include <iostream>
 
+int ERROR_COUNT = 0;
+int WARNING_COUNT = 0;
+
 #define SUPPRESS_CHILD_SCOPE true
-#define DONT_SUPPRESS_CHILD_SCOPE false
 
-ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode);
-void checkChildren(TreeNode *node, SymbolTable *symTab, bool suppressChildScope);
-void checkIsUsed(std::string symbolName, void *ptr);
-void checkIsInit(std::string symbolName, void *ptr);
-void checkSizeOf(TreeNode *node);
+ExpType verifyNodeTypes(TreeNode *parentNode, treeNode *leftNode, treeNode *rightNode);
 
-int NUM_ERRORS = 0;
-int NUM_WARNINGS = 0;
-
-void foo(void *x)
-{
-    dumpNode((treeNode *)x);
-}
-
-void checkSizeOf(TreeNode *node, SymbolTable *symTab)
+void verifySize(TreeNode *node, SymbolTable *symTab)
 {
     if (node->op == SIZEOF)
     {
-
-        if (node->parent->isRangeK)
-        {
-            node->expType = UndefinedType;
-            if (node->child[0] != NULL && node->child[0]->nodekind == ExpK && node->child[0]->subkind.exp == IdK)
-            {
-                node->child[0]->expType = UndefinedType;
-            }
-        }
-        else
-            node->expType = Integer;
-
+        node->expType = Integer;
         if (node->child[0]->subkind.exp == IdK)
         {
             TreeNode *lookupNode;
@@ -49,72 +28,134 @@ void checkSizeOf(TreeNode *node, SymbolTable *symTab)
             if (lookupNode != NULL && !(lookupNode->isArray))
             {
                 printf("ERROR(%d): The operation 'sizeof' only works with arrays.\n", node->lineno);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
         }
         else
-            printf("size of lookup failed. child node is not IDk\n");
-    }
-}
-
-void checkChildren(TreeNode *node, SymbolTable *symTab, bool suppressChildScope)
-{
-
-    for (int i = 0; i < MAXCHILDREN; i++)
-    {
-        if (node->child[i] != NULL)
         {
-            checkTree2(symTab, node->child[i], suppressChildScope, node);
+            TreeNode *lookupNode;
+            lookupNode = (treeNode *)symTab->lookup(std::string(node->child[0]->attr.name));
+
+            if (lookupNode != NULL && !node->child[0]->isArray)
+            {
+                printf("ERROR(%d): The operation 'sizeof' only works with arrays.\n", node->lineno);
+                ERROR_COUNT++;
+            }
+            else
+            {
+                if (!node->child[0]->undeclared)
+                {
+                    printf("ERROR(%d): The operation 'sizeof' only works with arrays.\n", node->lineno);
+                    ERROR_COUNT++;
+                }
+            }
         }
     }
 }
 
 void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, TreeNode *parent)
 {
-    char typing[64];
+    char nodeType[64];
+    static bool firstNode = true;
+    static TreeNode *headOfTree = NULL;
+    static TreeNode *tailOfTree = NULL;
+    static bool returnStmtFound = false;
+
+    static int loopDepth = 0;
+
+    static TreeNode *functionNodePtr = NULL;
 
     treeNode *lookupNode;
     while (node != NULL)
     {
+        if (firstNode)
+        {
+            headOfTree = node;
+            firstNode = false;
+            symbolLibrary(symTab);
+        }
+
         node->parent = parent;
-        convertExpTypeToString(node->expType, typing);
+        exprToStr(node->expType, nodeType);
 
         if (node->nodekind == StmtK)
         {
             switch (node->subkind.stmt)
             {
                 case NullK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
                     break;
 
                 case IfK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    if (node->child[0] != NULL && node->child[0]->expType != Boolean)
+                    {
+                        char buffChild[64];
+                        exprToStr(node->child[0]->expType, buffChild);
+                        if (node->child[0]->expType != UndefinedType)
+                        {
+                            printf("ERROR(%d): Expecting Boolean test condition in if statement but got type %s.\n", node->lineno, buffChild);
+                            ERROR_COUNT++;
+                        }
+                    }
+
+                    if (node->child[0] != NULL && node->child[0]->isArray)
+                    {
+                        printf("ERROR(%d): Cannot use array as test condition in if statement.\n", node->lineno);
+                        ERROR_COUNT++;
+                    }
+
                     break;
 
                 case WhileK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    loopDepth++;
+
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    if (node->child[0] != NULL && node->child[0]->expType != Boolean)
+                    {
+                        char buffChild[64];
+                        exprToStr(node->child[0]->expType, buffChild);
+                        if (node->child[0]->expType != UndefinedType)
+                        {
+                            printf("ERROR(%d): Expecting Boolean test condition in while statement but got type %s.\n", node->lineno, buffChild);
+                            ERROR_COUNT++;
+                        }
+                    }
+
+                    if (node->child[0] != NULL && node->child[0]->isArray)
+                    {
+                        printf("ERROR(%d): Cannot use array as test condition in while statement.\n", node->lineno);
+                        ERROR_COUNT++;
+                    }
+                    loopDepth--;
+
                     break;
 
                 case ForK:
                     symTab->enter(std::string("this is a for loop"));
+                    loopDepth++;
 
-                    checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, SUPPRESS_CHILD_SCOPE);
 
                     if (!(node->child[2] != NULL && node->child[2]->nodekind == StmtK && node->child[2]->subkind.stmt == CompoundK))
                     {
-                        symTab->applyToAll(checkIsUsed);
+                        symTab->applyToAll(verifySymbolUsage);
                     }
 
                     symTab->leave();
+                    loopDepth--;
                     break;
 
                 case CompoundK:
                     if (!parentSuppressScope)
                         symTab->enter(std::string("THIS IS A COMPOUND"));
 
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
 
-                    symTab->applyToAll(checkIsUsed);
+                    if (node->parent != NULL && !(node->parent->nodekind == DeclK && node->parent->subkind.decl == FuncK))
+                        symTab->applyToAll(verifySymbolUsage);
 
                     if (!parentSuppressScope)
                         symTab->leave();
@@ -124,17 +165,80 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
 
                 case ReturnK:
 
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    returnStmtFound = true;
+
+                    if (node->child[0] != NULL && functionNodePtr != NULL)
+                    {
+                        char buffChild[64];
+                        char buffFunc[64];
+
+                        if (node->child[0]->expType != functionNodePtr->expType)
+                        {
+                            exprToStr(functionNodePtr->expType, buffFunc);
+                            exprToStr(node->child[0]->expType, buffChild);
+
+                            if (node->child[0]->expType != UndefinedType)
+                            {
+
+                                if (functionNodePtr->expType == Void)
+                                {
+                                    printf("ERROR(%d): Function '%s' at line %d is expecting no return value, but return has a value.\n",
+                                           node->lineno,
+                                           functionNodePtr->attr.string,
+                                           functionNodePtr->lineno);
+
+                                    ERROR_COUNT++;
+                                }
+                                else
+                                {
+                                    printf("ERROR(%d): Function '%s' at line %d is expecting to return type %s but returns type %s.\n",
+                                           node->lineno,
+                                           functionNodePtr->attr.string,
+                                           functionNodePtr->lineno,
+                                           buffFunc,
+                                           buffChild);
+
+                                    ERROR_COUNT++;
+                                }
+                            }
+                        }
+                    }
+                    else if (functionNodePtr != NULL)
+                    {
+                        char buffFunc[64];
+
+                        exprToStr(functionNodePtr->expType, buffFunc);
+
+                        if (functionNodePtr->expType != Void)
+                        {
+                            printf("ERROR(%d): Function '%s' at line %d is expecting to return type %s but return has no value.\n",
+                                   node->lineno,
+                                   functionNodePtr->attr.string,
+                                   functionNodePtr->lineno,
+                                   buffFunc);
+
+                            ERROR_COUNT++;
+                        }
+                    }
 
                     if (node->child[0] != NULL && node->child[0]->isArray)
                     {
                         printf("ERROR(%d): Cannot return an array.\n", node->lineno);
-                        NUM_ERRORS++;
+                        ERROR_COUNT++;
                     }
                     break;
 
                 case BreakK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    if (loopDepth == 0)
+                    {
+                        printf("ERROR(%d): Cannot have a break statement outside of loop.\n", node->lineno);
+                        ERROR_COUNT++;
+                    }
+
                     break;
 
                 case RangeK:
@@ -144,14 +248,36 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         node->child[0]->isRangeK = true;
                         node->child[1]->isInit = true;
                         node->child[1]->isRangeK = true;
-
                         if (node->child[2] != NULL)
                         {
                             node->child[2]->isInit = true;
                             node->child[2]->isRangeKBy = true;
                         }
                     }
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    for (int i = 0; node->child[i] != NULL; i++)
+                    {
+                        char buff[64];
+                        exprToStr(node->child[i]->expType, buff);
+
+                        if (node->child[i]->expType != Integer && node->child[i]->expType != UndefinedType && !(node->child[i]->isFunc && node->child[i]->expType == Void))
+                        {
+                            printf("ERROR(%d): Expecting type int in position %d in range of for statement but got type %s.\n",
+                                   node->lineno,
+                                   i + 1,
+                                   buff);
+                            ERROR_COUNT++;
+                        }
+
+                        if (node->child[i]->isArray)
+                        {
+                            printf("ERROR(%d): Cannot use array in position %d in range of for statement.\n",
+                                   node->lineno,
+                                   i + 1);
+                            ERROR_COUNT++;
+                        }
+                    }
                     break;
 
                 default:
@@ -166,17 +292,18 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
             {
                 case VarK:
 
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
                     if (symTab->insert(std::string(node->attr.name), (void *)node))
                     {
                         node->depth = symTab->depth();
                         node->isUsed = false;
-
                         if (node->parent != NULL && node->parent->nodekind == StmtK && node->parent->subkind.stmt == ForK)
                             node->isInit = true;
                         else
                             node->isInit = false;
 
-                        node->isInitErrorThrown = false;
+                        node->isInitError = false;
                     }
                     else
                     {
@@ -185,14 +312,70 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                                node->lineno,
                                lookupNode->attr.name,
                                lookupNode->lineno);
-                        NUM_ERRORS++;
+                        ERROR_COUNT++;
                     }
 
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-
                     if (node->child[0] != NULL)
-                        node->isInit = true;
+                    {
+                        if ((node->child[0]->tokenStr != NULL && node->tokenStr != NULL) && strcmp(node->child[0]->tokenStr, node->tokenStr) == 0)
+                        {
 
+                            lookupNode = (treeNode *)symTab->lookup(node->attr.name);
+                            if (lookupNode == NULL)
+                            {
+                                node->isUsed = false;
+
+                                printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
+                                ERROR_COUNT++;
+                            }
+                            else
+                            {
+                            }
+                        }
+
+                        if (!node->child[0]->isConst)
+                        {
+                            printf("ERROR(%d): Initializer for variable '%s' is not a constant expression.\n",
+                                   node->lineno,
+                                   node->attr.name);
+
+                            ERROR_COUNT++;
+                        }
+                        if (node->child[0]->expType != node->expType)
+                        {
+                            char buff[64];
+
+                            exprToStr(node->child[0]->expType, buff);
+                            if (node->child[0]->expType != UndefinedType)
+                            {
+                                printf("ERROR(%d): Initializer for variable '%s' of type %s is of type %s\n",
+                                       node->lineno,
+                                       node->attr.name,
+                                       nodeType,
+                                       buff);
+
+                                ERROR_COUNT++;
+                            }
+                        }
+
+                        if (node->isArray && !node->child[0]->isArray)
+                        {
+                            printf("ERROR(%d): Initializer for variable '%s' requires both operands be arrays or not but variable is an array and rhs is not an array.\n",
+                                   node->lineno,
+                                   node->attr.name);
+
+                            ERROR_COUNT++;
+                        }
+                        else if (!node->isArray && node->child[0]->isArray)
+                        {
+                            printf("ERROR(%d): Initializer for variable '%s' requires both operands be arrays or not but variable is not an array and rhs is an array.\n",
+                                   node->lineno,
+                                   node->attr.name);
+
+                            ERROR_COUNT++;
+                        }
+                        node->isInit = true;
+                    }
                     break;
 
                 case FuncK:
@@ -201,12 +384,11 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         printf("internal error NULL REACHED in attrName funck\n");
                         break;
                     }
+                    node->isFunc = true;
 
                     if (symTab->insertGlobal(std::string(node->attr.string), node))
                     {
                         node->depth = symTab->depth();
-                        node->isUsed = false;
-                        node->isFunc = true;
                     }
                     else
                     {
@@ -215,19 +397,37 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                                node->lineno,
                                lookupNode->attr.string,
                                lookupNode->lineno);
-                        NUM_ERRORS++;
+                        ERROR_COUNT++;
                     }
                     symTab->enter(std::string(node->attr.string));
 
-                    checkChildren(node, symTab, SUPPRESS_CHILD_SCOPE);
+                    if (node->isFunc && !node->isIo)
+                        functionNodePtr = node;
+                    validateChildNodes(node, symTab, SUPPRESS_CHILD_SCOPE);
 
-                    if (node->child[1] != NULL)
+                    functionNodePtr = NULL;
+
+                    if (!returnStmtFound)
                     {
-                        if (node->child[1]->nodekind == StmtK && node->child[1]->subkind.stmt == ReturnK)
-                            symTab->applyToAll(checkIsUsed);
+                        if (!node->isIo)
+                        {
+                            if (node->expType != Void)
+                            {
+                                printf("WARNING(%d): Expecting to return type %s but function '%s' has no return statement.\n", node->lineno, nodeType, node->attr.string);
+                                WARNING_COUNT++;
+                            }
+                        }
                     }
 
+                    else
+                    {
+                        returnStmtFound = false;
+                    }
+
+                    symTab->applyToAll(verifySymbolUsage);
+
                     symTab->leave();
+                    loopDepth = 0;
                     break;
 
                 case ParamK:
@@ -237,9 +437,8 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         break;
                     }
 
-                    node->isUsed = false;
                     node->isInit = true;
-
+                    node->isParam = true;
                     if (!symTab->insert(std::string(node->attr.name), (void *)node))
                     {
                         lookupNode = (treeNode *)symTab->lookup(node->attr.string);
@@ -247,11 +446,13 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                                node->lineno,
                                lookupNode->attr.string,
                                lookupNode->lineno);
-                        NUM_ERRORS++;
+                        ERROR_COUNT++;
                     }
                     node->depth = symTab->depth();
 
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    node->parent->numParams++;
                     break;
 
                 default:
@@ -265,33 +466,36 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
             switch (node->subkind.exp)
             {
                 case OpK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
-
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
                     if (node->op == OPEN_BRACK)
                     {
                         if (node->child[0] != NULL)
-                            node->expType = node->child[0]->expType;
-
-                        if (node->child[1]->expType != Integer)
                         {
-                            char buff[64];
-                            convertExpTypeToString(node->child[1]->expType, buff);
-                            printf("ERROR(%d): Array '%s' should be indexed by type int but got type %s.\n",
-                                   node->lineno, node->child[0]->attr.name, buff);
-                            NUM_ERRORS++;
+                            node->expType = node->child[0]->expType;
+                            node->undeclared = node->child[0]->undeclared;
                         }
-
                         lookupNode = (treeNode *)symTab->lookup(std::string(node->child[0]->attr.name));
                         if (lookupNode != NULL && !(lookupNode->isArray))
                         {
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
-                            NUM_ERRORS++;
+                            ERROR_COUNT++;
                         }
-
                         else if (lookupNode == NULL)
                         {
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n", node->child[0]->lineno, node->child[0]->attr.name);
-                            NUM_ERRORS++;
+                            ERROR_COUNT++;
+                        }
+
+                        if (node->child[1]->expType != Integer && node->child[1]->expType != UndefinedType)
+                        {
+                            if (!node->child[1]->isFunc)
+                            {
+                                char buff[64];
+                                exprToStr(node->child[1]->expType, buff);
+                                printf("ERROR(%d): Array '%s' should be indexed by type int but got type %s.\n",
+                                       node->lineno, node->child[0]->attr.name, buff);
+                                ERROR_COUNT++;
+                            }
                         }
 
                         if (node->child[1]->nodekind == ExpK && node->child[1]->subkind.exp == IdK)
@@ -300,7 +504,7 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                             if (lookupNode != NULL && lookupNode->isArray)
                             {
                                 printf("ERROR(%d): Array index is the unindexed array '%s'.\n", node->child[1]->lineno, node->child[1]->attr.name);
-                                NUM_ERRORS++;
+                                ERROR_COUNT++;
                             }
                         }
                         node->isArray = false;
@@ -309,13 +513,15 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                     else
                     {
                         if (node->op == SIZEOF)
-                            checkSizeOf(node, symTab);
+                            verifySize(node, symTab);
                         else
-                            node->expType = typeTable(node, node->child[0], node->child[1]);
+                            node->expType = verifyNodeTypes(node, node->child[0], node->child[1]);
                     }
                     break;
                 case ConstantK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+                    node->isConst = true;
+
                     break;
 
                 case IdK:
@@ -323,27 +529,18 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
 
                     if (lookupNode == NULL)
                     {
-                        if (!node->isRangeK)
-                        {
-                            printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
-                            NUM_ERRORS++;
-                        }
+
+                        printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
+                        ERROR_COUNT++;
+
+                        node->undeclared = true;
                     }
+
                     else
                     {
-                        if (node->isRangeK || node->parent->isRangeKBy || node->isRangeKBy)
-                        {
-                            lookupNode->isInit = true;
-                        }
-                        else
-                            lookupNode->isUsed = true;
+                        lookupNode->isUsed = true;
 
-                        if ((node->parent->nodekind == StmtK && node->parent->subkind.stmt == RangeK) || node->isRangeKBy || node->parent->isRangeKBy)
-                        {
-                            node->expType = UndefinedType;
-                        }
-                        else
-                            node->expType = lookupNode->expType;
+                        node->expType = lookupNode->expType;
 
                         node->isArray = lookupNode->isArray;
                         node->isStatic = lookupNode->isStatic;
@@ -363,6 +560,7 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
 
                             if (currParent->op == OPEN_BRACK)
                             {
+
                                 currNode = currParent;
                                 currParent = currParent->parent;
                             }
@@ -374,22 +572,24 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
 
                             if (currParent != NULL && currParent->nodekind == ExpK && currParent->subkind.exp == AssignK && currParent->child[0] == currNode && currParent->op == ASS)
                             {
+
                                 suppressWarning = true;
                             }
 
                             if (lookupNode->isStatic || lookupNode->depth == 1)
                             {
+
                                 suppressWarning = true;
                             }
 
                             if (!suppressWarning)
                             {
-                                if (!lookupNode->isInitErrorThrown && !lookupNode->isFunc)
+                                if (!lookupNode->isInitError && !lookupNode->isFunc)
                                 {
 
                                     printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", node->lineno, node->attr.name);
-                                    NUM_WARNINGS++;
-                                    lookupNode->isInitErrorThrown = true;
+                                    WARNING_COUNT++;
+                                    lookupNode->isInitError = true;
                                 }
                             }
                         }
@@ -397,15 +597,16 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         if (lookupNode->isFunc)
                         {
                             printf("ERROR(%d): Cannot use function '%s' as a variable.\n", node->lineno, node->attr.name);
-                            NUM_ERRORS++;
+                            ERROR_COUNT++;
                         }
                     }
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
                     break;
 
                 case AssignK:
                 {
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
 
                     bool isArrayRef = false;
 
@@ -439,26 +640,26 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                                 lookupNode->isInit = true;
                             }
                         }
-
                         if (isArrayRef)
                         {
                             childNodeRef->parent->isArray = false;
                             childNodeRef->parent->expType = childNodeRef->expType;
                         }
                     }
-
                     if (node->op != OPEN_BRACK)
                     {
+
                         if (node->op == SIZEOF)
-                            checkSizeOf(node, symTab);
+                            verifySize(node, symTab);
                         else
-                            node->expType = typeTable(node, node->child[0], node->child[1]);
+                            node->expType = verifyNodeTypes(node, node->child[0], node->child[1]);
                     }
 
                     break;
                 }
                 case InitK:
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
                     break;
 
                 case CallK:
@@ -469,7 +670,7 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         if (!lookupNode->isFunc)
                         {
                             printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", node->lineno, node->attr.name);
-                            NUM_ERRORS++;
+                            ERROR_COUNT++;
                             break;
                         }
                     }
@@ -478,7 +679,7 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                     if (lookupNode == NULL)
                     {
                         printf("ERROR(%d): Symbol '%s' is not declared.\n", node->lineno, node->attr.name);
-                        NUM_ERRORS++;
+                        ERROR_COUNT++;
                     }
                     else
                     {
@@ -486,7 +687,79 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
                         node->expType = lookupNode->expType;
                     }
 
-                    checkChildren(node, symTab, DONT_SUPPRESS_CHILD_SCOPE);
+                    validateChildNodes(node, symTab, !SUPPRESS_CHILD_SCOPE);
+
+                    if (node != NULL)
+                    {
+                        TreeNode *tmpNode = node->child[0];
+                        while (tmpNode != NULL)
+                        {
+                            node->numParams++;
+                            tmpNode = tmpNode->sibling;
+                        }
+                    }
+
+                    if (lookupNode != NULL)
+                    {
+                        if (node->numParams < lookupNode->numParams)
+                        {
+                            printf("ERROR(%d): Too few parameters passed for function '%s' declared on line %d.\n", node->lineno, lookupNode->attr.string, lookupNode->lineno);
+                            ERROR_COUNT++;
+                        }
+
+                        if (node->numParams > lookupNode->numParams)
+                        {
+                            printf("ERROR(%d): Too many parameters passed for function '%s' declared on line %d.\n", node->lineno, lookupNode->attr.string, lookupNode->lineno);
+                            ERROR_COUNT++;
+                        }
+                        char lookupBuff[64];
+                        char currNodeBuff[64];
+
+                        int paramIndex = 1;
+
+                        for (TreeNode *tmpCurrNode = node->child[0], *tmpLookupNode = lookupNode->child[0];
+                             (tmpCurrNode != NULL) && (tmpLookupNode != NULL);
+                             tmpCurrNode = tmpCurrNode->sibling, tmpLookupNode = tmpLookupNode->sibling)
+                        {
+                            exprToStr(tmpLookupNode->expType, lookupBuff);
+                            exprToStr(tmpCurrNode->expType, currNodeBuff);
+
+                            if (tmpCurrNode->expType != tmpLookupNode->expType)
+                            {
+                                if (tmpCurrNode->expType != UndefinedType)
+                                {
+                                    printf("ERROR(%d): Expecting type %s in parameter %d of call to '%s' declared on line %d but got type %s.\n",
+                                           node->lineno,
+                                           lookupBuff,
+                                           paramIndex,
+                                           lookupNode->attr.string,
+                                           lookupNode->lineno,
+                                           currNodeBuff);
+                                    ERROR_COUNT++;
+                                }
+                            }
+
+                            if (tmpLookupNode->isArray && !tmpCurrNode->isArray)
+                            {
+                                printf("ERROR(%d): Expecting array in parameter %d of call to '%s' declared on line %d.\n",
+                                       node->lineno,
+                                       paramIndex,
+                                       lookupNode->attr.string,
+                                       lookupNode->lineno);
+                                ERROR_COUNT++;
+                            }
+                            else if (!tmpLookupNode->isArray && tmpCurrNode->isArray)
+                            {
+                                printf("ERROR(%d): Not expecting array in parameter %d of call to '%s' declared on line %d.\n",
+                                       node->lineno,
+                                       paramIndex,
+                                       lookupNode->attr.string,
+                                       lookupNode->lineno);
+                                ERROR_COUNT++;
+                            }
+                            paramIndex++;
+                        }
+                    }
 
                     break;
 
@@ -502,23 +775,145 @@ void checkTree2(SymbolTable *symTab, TreeNode *node, bool parentSuppressScope, T
             exit(-1);
         }
 
+        if (node->sibling == NULL && node->parent == NULL)
+        {
+            tailOfTree = node;
+            symTab->applyToAllGlobal(verifySymbolUsage);
+        }
+
         node = node->sibling;
     }
 }
 
-void checkIsUsed(std::string symbolName, void *ptr)
+void verifySymbolUsage(std::string symbolName, void *ptr)
 {
     treeNode *nodeptr;
     nodeptr = (treeNode *)ptr;
-    if (!nodeptr->isUsed && nodeptr->depth != 1)
+
+    if (!nodeptr->isUsed)
     {
-        printf("WARNING(%d): The variable '%s' seems not to be used.\n",
-               nodeptr->lineno, symbolName.c_str());
-        NUM_WARNINGS++;
+
+        if (nodeptr->isFunc)
+        {
+            if (strcmp(nodeptr->attr.string, "main") != 0)
+            {
+                printf("WARNING(%d): The function '%s' seems not to be used.\n",
+                       nodeptr->lineno, symbolName.c_str());
+                WARNING_COUNT++;
+            }
+        }
+        else if (nodeptr->isParam)
+        {
+            printf("WARNING(%d): The parameter '%s' seems not to be used.\n",
+                   nodeptr->lineno, symbolName.c_str());
+            WARNING_COUNT++;
+        }
+        else
+        {
+            printf("WARNING(%d): The variable '%s' seems not to be used.\n",
+                   nodeptr->lineno, symbolName.c_str());
+            WARNING_COUNT++;
+        }
     }
 }
 
-ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
+void validateChildNodes(TreeNode *node, SymbolTable *symTab, bool suppressChildScope)
+{
+    for (int i = 0; i < MAX_CHILDREN; i++)
+    {
+        if (node->child[i] != NULL)
+        {
+            checkTree2(symTab, node->child[i], suppressChildScope, node);
+        }
+    }
+}
+
+void symbolLibrary(SymbolTable *symTab)
+{
+    TreeNode *ioTree = NULL;
+    TreeNode *ioTreeNode = NULL;
+    TreeNode *childIoTreeNode = NULL;
+
+    ioTree = newDeclNode(FuncK, Integer);
+    ioTree->attr.name = strdup("input");
+    ioTree->isFunc = true;
+    ioTree->lineno = -1;
+    ioTree->isUsed = true;
+    ioTree->isIo = true;
+
+    ioTreeNode = newDeclNode(FuncK, Boolean);
+    ioTreeNode->attr.name = strdup("inputb");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    ioTreeNode = newDeclNode(FuncK, Char);
+    ioTreeNode->attr.name = strdup("inputc");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    childIoTreeNode = newDeclNode(ParamK, Integer);
+    childIoTreeNode->attr.name = strdup("*dummy*");
+    childIoTreeNode->lineno = -1;
+    childIoTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+    ioTreeNode = newDeclNode(FuncK, Void, NULL, childIoTreeNode);
+    ioTreeNode->attr.name = strdup("output");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    childIoTreeNode = newDeclNode(ParamK, Boolean);
+    childIoTreeNode->attr.name = strdup("*dummy*");
+    childIoTreeNode->lineno = -1;
+    childIoTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+    ioTreeNode = newDeclNode(FuncK, Void, NULL, childIoTreeNode);
+    ioTreeNode->attr.name = strdup("outputb");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    childIoTreeNode = newDeclNode(ParamK, Char);
+    childIoTreeNode->attr.name = strdup("*dummy*");
+    childIoTreeNode->lineno = -1;
+    childIoTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+    ioTreeNode = newDeclNode(FuncK, Void, NULL, childIoTreeNode);
+    ioTreeNode->attr.name = strdup("outputc");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    ioTreeNode = newDeclNode(FuncK, Void);
+    ioTreeNode->attr.name = strdup("outnl");
+    ioTreeNode->isFunc = true;
+    ioTreeNode->lineno = -1;
+    ioTreeNode->isUsed = true;
+    ioTreeNode->isIo = true;
+
+    addSibling(ioTree, ioTreeNode);
+
+    checkTree2(symTab, ioTree, false, NULL);
+}
+
+ExpType verifyNodeTypes(TreeNode *parentNode, treeNode *leftNode, treeNode *rightNode)
 {
     ExpType lhs, rhs;
 
@@ -530,50 +925,66 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
         OpKind op = parentNode->op;
         if (op == PLUS || op == MINUS || op == DIV || op == MOD || op == MAX || op == MIN || op == MULT)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
 
-            if (parentNode->isRangeK || parentNode->isRangeKBy)
-                return UndefinedType;
+            if ((leftNode != NULL && rightNode != NULL) && (leftNode->isConst && rightNode->isConst))
+                parentNode->isConst = true;
 
             if (lhs == Integer && rhs == Integer)
             {
-                if (!lhsNode->isArray && !rhsNode->isArray)
+
+                if (!leftNode->isArray && !rightNode->isArray)
                 {
-                    //HACK
-                    if (parentNode->parent->nodekind == StmtK && parentNode->parent->subkind.stmt == RangeK)
-                    {
-                        return UndefinedType;
-                    }
                     return Integer;
                 }
 
                 printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
 
                 return Integer;
             }
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
-            if (lhs == Integer)
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
+            if (lhs == Integer && rhs != Integer)
             {
-                if (rhs != UndefinedType && rhs != Void)
+                if (rhs != UndefinedType)
                 {
-                    printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
-                           parentNode->lineno, parentNode->attr.string,
-                           buff2);
-                    NUM_ERRORS++;
+                    if (rhs == Void && op == MULT)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff2);
+                        ERROR_COUNT++;
+                    }
+                    else if (rhs != Void)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff2);
+                        ERROR_COUNT++;
+                    }
                 }
             }
-            else if (rhs == Integer)
+            else if (lhs != Integer && rhs == Integer)
             {
-                if (lhs != UndefinedType && lhs != Void)
+                if (lhs != UndefinedType)
                 {
-                    printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
-                           parentNode->lineno, parentNode->attr.string,
-                           buff1);
-                    NUM_ERRORS++;
+                    if (lhs == Void && op == MULT)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff1);
+                        ERROR_COUNT++;
+                    }
+                    else if (lhs != Void)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff1);
+                        ERROR_COUNT++;
+                    }
                 }
             }
             else
@@ -583,32 +994,44 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
                     printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
                            parentNode->lineno, parentNode->attr.string,
                            buff1);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
 
                     printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
                            parentNode->lineno, parentNode->attr.string,
                            buff2);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
+                }
+                else if (lhs != UndefinedType)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff1);
+                    ERROR_COUNT++;
+                }
+                else if (rhs != UndefinedType)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff2);
+                    ERROR_COUNT++;
                 }
             }
-            if (lhsNode->isArray || rhsNode->isArray)
+            if (leftNode->isArray || rightNode->isArray)
             {
                 printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
             return Integer;
         }
         else if (op == CHSIGN || op == QUESTION)
         {
-            lhs = lhsNode->expType;
 
-            if (lhsNode->isArray)
-            {
-                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, op == CHSIGN ? "chsign" : "?");
-                NUM_ERRORS++;
-            }
+            if (leftNode->isConst && op == CHSIGN)
+                parentNode->isConst = true;
 
-            convertExpTypeToString(lhs, buff1);
+            lhs = leftNode->expType;
+
+            exprToStr(lhs, buff1);
 
             if (op == CHSIGN)
             {
@@ -618,11 +1041,14 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
                            parentNode->lineno,
                            "int",
                            buff1);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
 
-                if (parentNode->parent->nodekind == StmtK && parentNode->parent->subkind.stmt == RangeK)
-                    return UndefinedType;
+                if (leftNode->isArray)
+                {
+                    printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, op == CHSIGN ? "chsign" : "?");
+                    ERROR_COUNT++;
+                }
 
                 return Integer;
             }
@@ -634,7 +1060,13 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
                            parentNode->lineno, parentNode->attr.string,
                            "int",
                            buff1);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
+                }
+
+                if (leftNode->isArray)
+                {
+                    printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, op == CHSIGN ? "chsign" : "?");
+                    ERROR_COUNT++;
                 }
             }
 
@@ -642,133 +1074,148 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
         }
         else if (op == LEQ || op == LESS || op == GREATER || op == GEQ || op == EQ || op == NEQ)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
 
             if (op == EQ || op == NEQ)
             {
-                if ((!lhsNode->isArray && rhsNode->isArray))
+                if ((!leftNode->isArray && rightNode->isArray))
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is not an array and rhs is an array.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
-                else if (lhsNode->isArray && (!rhsNode->isArray))
+                else if (leftNode->isArray && (!rightNode->isArray))
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is an array and rhs is not an array.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
             }
             else if (op == GEQ || op == LEQ || op == LESS || op == GREATER)
             {
-                if ((!lhsNode->isArray && rhsNode->isArray))
+                if ((!leftNode->isArray && rightNode->isArray))
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is not an array and rhs is an array.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
-                else if (lhsNode->isArray && (!rhsNode->isArray))
+                else if (leftNode->isArray && (!rightNode->isArray))
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is an array and rhs is not an array.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
             }
 
             if (lhs == rhs)
             {
+                parentNode->isConst = true;
                 return Boolean;
             }
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
 
-            if (lhs != UndefinedType)
+            if (lhs != UndefinedType && rhs != UndefinedType)
             {
                 printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is type %s.\n",
                        parentNode->lineno, parentNode->attr.string, buff1, buff2);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
 
             return Boolean;
         }
         else if (op == AND || op == OR)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
             if (lhs == Boolean && rhs == Boolean)
             {
-                if (lhsNode->isArray || rhsNode->isArray)
+                if (leftNode->isArray || rightNode->isArray)
                 {
                     printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                     return UndefinedType;
                 }
+
+                parentNode->isConst = true;
+
                 return Boolean;
             }
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
 
-            if (lhs == Boolean)
+            if (lhs != UndefinedType || rhs != UndefinedType)
             {
-                printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff2);
-                NUM_ERRORS++;
-            }
-            else if (rhs == Boolean)
-            {
-                printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff1);
-                NUM_ERRORS++;
+
+                if (lhs == Boolean && rhs != Boolean && rhs != UndefinedType)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff2);
+                    ERROR_COUNT++;
+                }
+                else if (lhs != Boolean && lhs != UndefinedType && rhs == Boolean)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff1);
+                    ERROR_COUNT++;
+                }
+                else
+                {
+                    if (lhs != UndefinedType && lhs != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff1);
+                        ERROR_COUNT++;
+                    }
+
+                    if (rhs != UndefinedType && rhs != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
+                               parentNode->lineno, parentNode->attr.string,
+                               buff2);
+                        ERROR_COUNT++;
+                    }
+                }
+
+                if (leftNode->isArray || rightNode->isArray)
+                {
+                    printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
+                    ERROR_COUNT++;
+                }
+                return Boolean;
             }
             else
-            {
-                printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff1);
-                NUM_ERRORS++;
-
-                printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff2);
-                NUM_ERRORS++;
-            }
-
-            if (lhsNode->isArray || rhsNode->isArray)
-            {
-                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                NUM_ERRORS++;
-            }
-            return Boolean;
+                return Boolean;
         }
 
         else if (op == NOT)
         {
-            lhs = lhsNode->expType;
-
+            lhs = leftNode->expType;
             if (lhs == Boolean)
             {
-                if (lhsNode->isArray)
+                if (leftNode->isArray)
                 {
                     printf("ERROR(%d): The operation 'not' does not work with arrays.\n", parentNode->lineno);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
 
                 return Boolean;
             }
 
-            convertExpTypeToString(lhs, buff1);
+            exprToStr(lhs, buff1);
 
             printf("ERROR(%d): Unary 'not' requires an operand of type %s but was given type %s.\n",
                    parentNode->lineno,
                    "bool",
                    buff1);
-            NUM_ERRORS++;
+            ERROR_COUNT++;
 
-            if (lhsNode->isArray)
+            if (leftNode->isArray)
             {
                 printf("ERROR(%d): The operation 'not' does not work with arrays.\n", parentNode->lineno);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
             return Boolean;
         }
@@ -779,37 +1226,57 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
 
         if (op == ASS)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
             if (lhs == rhs)
             {
-                if (lhsNode->isArray && rhsNode->isArray)
+                if (leftNode->isArray && rightNode->isArray)
+                {
+                    parentNode->isArray = true;
                     return lhs;
-                else if (lhsNode->isArray && !(rhsNode->isArray))
+                }
+
+                else if (leftNode->isArray && !(rightNode->isArray))
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is an array and rhs is not an array.\n",
                            parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
-                else if (!(lhsNode->isArray) && rhsNode->isArray)
+                else if (!(leftNode->isArray) && rightNode->isArray)
                 {
                     printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is not an array and rhs is an array.\n",
                            parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
 
                 return lhs;
             }
             else
             {
-                if (lhs != UndefinedType && lhs != Void)
+                if (lhs != UndefinedType && rhs != UndefinedType)
                 {
-                    printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is type %s.\n",
-                           parentNode->lineno, parentNode->attr.string, buff1, buff2);
-                    NUM_ERRORS++;
+                    if (!leftNode->isFunc && !rightNode->isFunc)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is type %s.\n",
+                               parentNode->lineno, parentNode->attr.string, buff1, buff2);
+                        ERROR_COUNT++;
+                    }
+                }
+                if (lhs != UndefinedType && leftNode->isArray && !(rightNode->isArray))
+                {
+                    printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is an array and rhs is not an array.\n",
+                           parentNode->lineno, parentNode->attr.string);
+                    ERROR_COUNT++;
+                }
+
+                if (rhs != UndefinedType && rightNode->isArray && !(leftNode->isArray))
+                {
+                    printf("ERROR(%d): '%s' requires both operands be arrays or not but lhs is not an array and rhs is an array.\n",
+                           parentNode->lineno, parentNode->attr.string);
+                    ERROR_COUNT++;
                 }
             }
 
@@ -817,63 +1284,68 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
         }
         else if (op == ADDASS || op == SUBASS || op == MULASS || op == DIVASS)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
             if (lhs == Integer && rhs == Integer)
             {
-                if (lhsNode->isArray || rhsNode->isArray)
+                if (leftNode->isArray || rightNode->isArray)
                 {
                     printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
                 return Integer;
             }
 
-            if (lhs == Integer)
+            if (lhs != UndefinedType && rhs != UndefinedType)
             {
-                printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff2);
-                NUM_ERRORS++;
-            }
-            else if (rhs == Integer)
-            {
-                printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff1);
-                NUM_ERRORS++;
+                if (lhs == Integer && rhs != Integer)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff2);
+                    ERROR_COUNT++;
+                }
+                else if (lhs != Integer && rhs == Integer)
+                {
+                    printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff1);
+                    ERROR_COUNT++;
+                }
+                else
+                {
+                    printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff1);
+                    ERROR_COUNT++;
+
+                    printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
+                           parentNode->lineno, parentNode->attr.string,
+                           buff2);
+                    ERROR_COUNT++;
+                }
+
+                return Integer;
             }
             else
-            {
-                printf("ERROR(%d): '%s' requires operands of type int but lhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff1);
-                NUM_ERRORS++;
-
-                printf("ERROR(%d): '%s' requires operands of type int but rhs is of type %s.\n",
-                       parentNode->lineno, parentNode->attr.string,
-                       buff2);
-                NUM_ERRORS++;
-            }
-
-            return Integer;
+                return Integer;
         }
 
         else if (op == DEC || op == INC)
         {
-            lhs = lhsNode->expType;
+            lhs = leftNode->expType;
 
-            convertExpTypeToString(lhs, buff1);
+            exprToStr(lhs, buff1);
 
             if (lhs == Integer)
             {
-                if (lhsNode->isArray)
+                if (leftNode->isArray)
                 {
                     printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
                 return lhs;
             }
@@ -886,82 +1358,85 @@ ExpType typeTable(TreeNode *parentNode, treeNode *lhsNode, treeNode *rhsNode)
                            parentNode->lineno, parentNode->attr.string,
                            "int",
                            buff1);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
 
-                if (lhsNode->isArray)
+                if (leftNode->isArray)
                 {
                     printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
             }
             return Integer;
         }
         else if (op == AND || op == OR)
         {
-            lhs = lhsNode->expType;
-            rhs = rhsNode->expType;
+            lhs = leftNode->expType;
+            rhs = rightNode->expType;
             if (lhs == Boolean && rhs == Boolean)
+            {
+                parentNode->isConst = true;
                 return Boolean;
+            }
 
-            convertExpTypeToString(lhs, buff1);
-            convertExpTypeToString(rhs, buff2);
+            exprToStr(lhs, buff1);
+            exprToStr(rhs, buff2);
 
-
-            if (lhs == Boolean)
+            if (lhs == Boolean && rhs != Boolean)
             {
                 printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
                        parentNode->lineno, parentNode->attr.string,
                        buff2);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
-            else if (rhs == Boolean)
+            else if (lhs != Boolean && rhs == Boolean)
             {
                 printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
                        parentNode->lineno, parentNode->attr.string,
                        buff1);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
             else
             {
                 printf("ERROR(%d): '%s' requires operands of type bool but lhs is of type %s.\n",
                        parentNode->lineno, parentNode->attr.string,
                        buff1);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
 
                 printf("ERROR(%d): '%s' requires operands of type bool but rhs is of type %s.\n",
                        parentNode->lineno, parentNode->attr.string,
                        buff2);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
             return Boolean;
         }
 
         else if (op == NOT)
         {
-            lhs = lhsNode->expType;
+            lhs = leftNode->expType;
+
             if (lhs == Boolean)
             {
-                if (lhsNode->isArray)
+                if (leftNode->isArray)
                 {
                     printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                    NUM_ERRORS++;
+                    ERROR_COUNT++;
                 }
                 return Boolean;
             }
 
-            convertExpTypeToString(lhs, buff1);
+            exprToStr(lhs, buff1);
 
             printf("ERROR(%d): Unary 'not' requires an operand of type %s but was given type %s.\n",
                    parentNode->lineno,
                    "bool",
                    buff1);
-            NUM_ERRORS++;
+            ERROR_COUNT++;
 
-            if (lhsNode->isArray)
+            if (leftNode->isArray)
             {
                 printf("ERROR(%d): The operation '%s' does not work with arrays.\n", parentNode->lineno, parentNode->attr.string);
-                NUM_ERRORS++;
+                ERROR_COUNT++;
             }
             return Boolean;
         }

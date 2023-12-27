@@ -9,4 +9,4 @@ typedef struct
     int lineNo;
 } TOKEN;
 
-#endif // _SCANTYPE_H_
+#endif

@@ -5,35 +5,7 @@
 #include <string>
 #include "yyerror.h"
 
-// // // // // // // // // // // // // // // // // // // //
-//
-// Error message printing
-//
-// Must make messages look nice.  For example:
-// msg = "syntax error, unexpected ',', expecting BOOL or CHAR or INT or ID."
-// becomes (xx marks important data):
-//  0 syntax
-//  1 error,
-//  2 unexpected
-//  3 ',',    xx
-//  4 expecting
-//  5 BOOL    xx
-//  6 or
-//  7 CHAR    xx
-//  8 or
-//  9 INT     xx
-// 10 or
-// 11 ID.     xx
 
-// assumes a string with breakchar separating each element.
-// breakchars will be replaced by null chars: '\0'
-// array of pointers to strings is then returned in
-// the array strs which must be allocated by the user!
-// the number of strings found is returned as a value of
-// the function.  This number is always at least 1.
-// The array is terminated by a NULL so there must be
-// enough room for all the string pointers plus one for the
-// sentinal marker.
 static int split(char *s, char *strs[], char breakchar)
 {
     int num;
@@ -53,19 +25,11 @@ static int split(char *s, char *strs[], char breakchar)
     return num;
 }
 
-// trim off the last character
 static void trim(char *s)
 {
     s[strlen(s) - 1] = '\0';
 }
-// map from string to char * for storing nice translation of
-// internal names for tokens.  Preserves (char *) used by
-// bison.
-static std::map<std::string, char *> niceTokenNameMap; // use an ordered map (not as fast as unordered)
-
-// WARNING: this routine must be called to initialize mapping of
-// (strings returned as error message) --> (human readable strings)
-//
+static std::map<std::string, char *> niceTokenNameMap;
 void initErrorProcessing()
 {
 
@@ -126,8 +90,6 @@ void initErrorProcessing()
     niceTokenNameMap["$end"] = (char *)"end of input";
 }
 
-// looks of pretty printed words for tokens that are
-// not already in single quotes.  It uses the niceTokenNameMap table.
 static char *niceTokenStr(char *tokenName)
 {
     if (tokenName[0] == '\'')
@@ -141,23 +103,11 @@ static char *niceTokenStr(char *tokenName)
     return niceTokenNameMap[tokenName];
 }
 
-// Is this a message that we need to elaborate with the current parsed token.
-// This elaboration is some what of a crap shoot since the token could
-// be already overwritten with a look ahead token.   But probably not.
 static bool elaborate(char *s)
 {
     return (strstr(s, "constant") || strstr(s, "identifier"));
 }
 
-// A tiny sort routine for SMALL NUMBERS of
-// of char * elements.  num is the total length
-// of the array but only every step elements will
-// be sorted.  The "up" flag is direction of sort.
-// For example:
-//    tinySort(str, i, 2, direction);      // sorts even number elements in array
-//    tinySort(str+1, i-1, 2, direction);  // sorts odd number elements in array
-//    tinySort(str, i, 1, direction);      // sorts all elements in array
-//
 static void tinySort(char *base[], int num, int step, bool up)
 {
     for (int i = step; i < num; i += step)
@@ -175,38 +125,32 @@ static void tinySort(char *base[], int num, int step, bool up)
     }
 }
 
-// This is the yyerror called by the bison parser for errors.
-// It only does errors and not warnings.
 void yyerror(const char *msg)
 {
     char *space;
     char *strs[100];
     int numstrs;
-    // make a copy of msg string
-    if (strcmp(msg, "syntax error, unexpected end of file, expecting ID or INT or BOOL or CHAR") == 0)
+        if (strcmp(msg, "syntax error, unexpected end of file, expecting ID or INT or BOOL or CHAR") == 0)
     {
         printf("ERROR(%d): Syntax error, unexpected end of input, expecting \"bool\" or \"char\" or \"int\" or identifier.\n",
                line);
-        NUM_ERRORS++;
+        ERROR_COUNT++;
     }
     else
     {
         space = strdup(msg);
 
-        // split out components
-        numstrs = split(space, strs, ' ');
+                numstrs = split(space, strs, ' ');
 
         if (numstrs > 4)
             trim(strs[3]);
 
-        // translate components
-        for (int i = 3; i < numstrs; i += 2)
+                for (int i = 3; i < numstrs; i += 2)
         {
             strs[i] = niceTokenStr(strs[i]);
         }
 
-        // print components
-        printf("ERROR(%d): Syntax error, unexpected %s", line, strs[3]);
+                printf("ERROR(%d): Syntax error, unexpected %s", line, strs[3]);
         if (elaborate(strs[3]))
         {
             if (lastToken[0] == '\'' || lastToken[0] == '"')
@@ -218,18 +162,15 @@ void yyerror(const char *msg)
         if (numstrs > 4)
             printf(",");
 
-        // print sorted list of expected
-        tinySort(strs + 5, numstrs - 5, 2, true);
+                tinySort(strs + 5, numstrs - 5, 2, true);
         for (int i = 4; i < numstrs; i++)
         {
             printf(" %s", strs[i]);
         }
 
         printf(".\n");
-        fflush(stdout); // force a dump of the error
-
-        NUM_ERRORS++; // count the number of errors
-
+        fflush(stdout);
+        ERROR_COUNT++;
         free(space);
     }
 }

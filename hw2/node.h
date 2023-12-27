@@ -7,21 +7,24 @@
 #include "scanType.h"
 #include "parser.tab.h"
 
-#define MAXCHILDREN 3
+#define MAX_CHILDREN 3
 
 class Node
 {
 public:
-    Node *child[MAXCHILDREN];
+    Node *child[MAX_CHILDREN];
     Node *sibling;
+
     int linenum;
     int depth;
     int index;
+
     bool isRoot;
     bool isChild;
     bool isConst;
     bool isArray;
     char *type;
+
     Node();
     void add(Node *);
     void addChild(int, Node *);

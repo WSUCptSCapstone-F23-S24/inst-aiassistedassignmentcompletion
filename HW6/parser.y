@@ -5,7 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "scanType.h"
-#include "Tree.h"
+#include "node.h"
 #include "ourgetopt.h"
 #include "symbolTable.h"
 #include "semantic.h"
@@ -35,7 +35,8 @@ TreeNode *syntaxTree;
 
 %define parse.error verbose
 
-%union {
+%union
+{
     ExpType expType;
     TokenData *tokenData;
     TreeNode *treenode;
@@ -529,25 +530,22 @@ constant        : NUMCONST      { $$ = newExpNode(ConstantK,$1);
 %%
 extern int yydebug;
 
-
-
-
-#define PRINT_MEM_LOC true
-
-#define DONT_PRINT_MEM_LOC false
+#define DISPLAY_MEM true
 
 int main(int argc, char *argv[])
 {
-    char c;
-    bool printFlag = false;
-    bool printFlagOld = false;
-    bool errorFlag = false;
-    bool memFlag = false;
     extern int optind;
-    extern int NUM_WARNINGS;
-    extern int NUM_ERRORS;
+    extern int WARNING_COUNT;
+    extern int ERROR_COUNT;
     extern int globalOffset;
-    
+
+    bool printFlag = false;
+    bool printpFlag = false;
+    bool errorFlag = false;
+    bool memoryFlag = false;
+
+    char c;
+
     initErrorProcessing();
 
     while(1)
@@ -560,14 +558,14 @@ int main(int argc, char *argv[])
                     errorFlag = true;
                     break;
                 case 'p':
-                    printFlagOld = true;
+                    printpFlag = true;
                     break;
                 case 'P':
                     printFlag = true;
                     break;
                 case 'M':
                     printFlag = true;
-                    memFlag = true;
+                    memoryFlag = true;
                     break;
                 default:
                     fprintf(stderr,"Usage: -p(print tree) -d(yydebug enable) are the only supported options\n./c- -[p|d] -[d|p] [FILENAME]\n");
@@ -583,9 +581,9 @@ int main(int argc, char *argv[])
             else 
             {
                 printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", argv[optind]);
-                NUM_ERRORS++;
-                printf("Number of warnings: %d\n",NUM_WARNINGS);
-                printf("Number of errors: %d\n",NUM_ERRORS);
+                ERROR_COUNT++;
+                printf("Number of warnings: %d\n",WARNING_COUNT);
+                printf("Number of errors: %d\n",ERROR_COUNT);
 
                 exit(1);
             }
@@ -602,7 +600,7 @@ int main(int argc, char *argv[])
     yyparse();
     SymbolTable *symTab; 
     symTab = new SymbolTable();
-    if(printFlag && NUM_ERRORS == 0)
+    if(printFlag && ERROR_COUNT == 0)
     {
       checkTree2(symTab,syntaxTree,false,NULL);
       treeNode *tmpLookupNode = (treeNode *) symTab->lookupGlobal(std::string("main"));
@@ -611,39 +609,37 @@ int main(int argc, char *argv[])
       {
         
         printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
-        NUM_ERRORS++;
+        ERROR_COUNT++;
       }
-      if(NUM_ERRORS == 0)
+      if(ERROR_COUNT == 0)
       {
-          if(memFlag)
+          if(memoryFlag)
         {
-          printTypedTree(syntaxTree,0, PRINT_MEM_LOC);
+          displayTypedTree(syntaxTree, 0, DISPLAY_MEM);
           printf("Offset for end of global space: %d\n",globalOffset);
         }
 
-        else if(!memFlag)
+        else if(!memoryFlag)
         {
-          printTypedTree(syntaxTree,0, DONT_PRINT_MEM_LOC);
+          displayTypedTree(syntaxTree, 0, !DISPLAY_MEM);
         }
       }
-        
-          
 
-      printf("Number of warnings: %d\n",NUM_WARNINGS);
-      printf("Number of errors: %d\n",NUM_ERRORS);
+      printf("Number of warnings: %d\n",WARNING_COUNT);
+      printf("Number of errors: %d\n",ERROR_COUNT);
 
     }
-    else if(printFlagOld && NUM_ERRORS == 0)
+    else if(printpFlag && ERROR_COUNT == 0)
     {
      
-        printTree(syntaxTree,0);
-        printf("Number of warnings: %d\n",NUM_WARNINGS);
-        printf("Number of errors: %d\n",NUM_ERRORS);
+        displayTree(syntaxTree,0);
+        printf("Number of warnings: %d\n",WARNING_COUNT);
+        printf("Number of errors: %d\n",ERROR_COUNT);
     }
     else
     {
-        printf("Number of warnings: %d\n",NUM_WARNINGS);
-        printf("Number of errors: %d\n",NUM_ERRORS);
+        printf("Number of warnings: %d\n",WARNING_COUNT);
+        printf("Number of errors: %d\n",ERROR_COUNT);
     }
 
     return 0;

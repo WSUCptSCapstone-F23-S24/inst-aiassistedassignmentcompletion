@@ -41,7 +41,7 @@ void Node::addChild(int c, Node *n)
 
 void Node::updateLoc()
 {
-    for (int i = 0; i < MAXCHILDREN; i++)
+    for (int i = 0; i < MAX_CHILDREN; i++)
         if (child[i])
         {
             child[i]->depth = depth + 1;
@@ -71,7 +71,7 @@ void Node::printSelf()
 
 void Node::print()
 {
-    for (int i = 0; i < MAXCHILDREN; i++)
+    for (int i = 0; i < MAX_CHILDREN; i++)
         if (child[i])
             child[i]->print();
     if (sibling)

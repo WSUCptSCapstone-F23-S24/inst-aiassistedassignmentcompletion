@@ -20,9 +20,7 @@ Node * AST;
 
 /* possible "terminal" values */
 %union {
-    class TokenData * tokenData; // for terminals. yylex()'s $ vars give token data
-    class Node * node;           // for nonterminals.
-}
+    class TokenData * tokenData;     class Node * node;           }
 
 /* terminals */
 %token <tokenData> STATIC BOOL CHAR INT
@@ -46,8 +44,7 @@ Node * AST;
 
 program
     : declList {
-        // $$ = $1;
-    }
+            }
     ;
 
 declList
@@ -57,10 +54,8 @@ declList
     }
     | decl {
         AST->add($1);
-        //AST = $1;
-        if ($1) $1->isRoot = true;
-        //$$ = $1;
-    }
+                if ($1) $1->isRoot = true;
+            }
     ;
 
 decl
@@ -430,16 +425,13 @@ int main (int argc, char *argv[])
 
     if(dFlag) yydebug = 1;
 
-    // if there is a file to be read
-    if (optind < argc) {
-        // attemp to read the file
-        if ((yyin = fopen(argv[optind], "r"))) {
+        if (optind < argc) {
+                if ((yyin = fopen(argv[optind], "r"))) {
             yyparse();
             fclose(yyin);
             AST->updateLoc();
         } else {
-            // failed to open file
-            printf("ERROR: failed to open \'%s\'\n", argv[1]);
+                        printf("ERROR: failed to open \'%s\'\n", argv[1]);
             exit(1);
         }
     } else {
@@ -448,8 +440,7 @@ int main (int argc, char *argv[])
     }
 
     if(pFlag) {
-        // attempt to print the AST to stdout
-        if(AST) AST->print();
+                if(AST) AST->print();
         else printf("Error attempting to print AST that is NULL.\n");
     }
 

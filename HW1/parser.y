@@ -1,8 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "scanType.h" // you can remove this include if it's not needed elsewhere
-
+#include "scanType.h"
 extern int yylex();
 extern FILE *yyin;
 extern int yylineno;
@@ -48,8 +47,6 @@ int yyerror(const char *s) {
 
 int main(int argc, char *argv[]) 
 {
-    // Initialize scanner
-    // ...
 
     yyparse();
 

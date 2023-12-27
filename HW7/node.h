@@ -3,6 +3,8 @@
 #include "scanType.h"
 #include <cstddef>
 
+#define MAX_CHILDREN 3
+
 typedef int OpKind;
 
 enum UnionType
@@ -68,16 +70,51 @@ enum ScopeKind
     LocalStatic
 };
 
-#define MAXCHILDREN 3
+enum Side
+{
+    Right,
+    Left,
+    Unknown,
+};
 
 typedef struct treeNode
 {
+    NodeKind nodekind;
+    UnionType unionType;
+    ScopeKind scope;
+    OpKind op;
+    ExpType expType;
+    Side side;
     struct treeNode *parent;
-    struct treeNode *child[MAXCHILDREN];
+    struct treeNode *child[MAX_CHILDREN];
     struct treeNode *sibling;
 
     int lineno;
-    NodeKind nodekind;
+    int depth;
+    int numParams;
+    int loc;
+    int size;
+
+    char *tokenStr;
+    char *indentArray;
+
+    bool isRangeKBy;
+    bool isRangeK;
+    bool isFunc;
+    bool isParam;
+    bool undeclared;
+    bool isIo;
+    bool isInitError;
+    bool isOp;
+    bool attrSet;
+    bool isArray;
+    bool isStatic;
+    bool isUsed;
+    bool isInit;
+    bool isConst;
+    bool rightAss;
+    bool leftAss;
+
     union
     {
         DeclKind decl;
@@ -93,29 +130,6 @@ typedef struct treeNode
         char *name;
     } attr;
 
-    UnionType unionType;
-    bool isRangeKBy;
-    bool isRangeK;
-    int depth;
-    bool isFunc;
-    bool isParam;
-    int numParams;
-    bool undeclared;
-    bool isIo;
-    ScopeKind scope;
-    int loc;
-    char *tokenStr;
-    bool isInitErrorThrown;
-    OpKind op;
-    bool isOp;
-    bool attrSet;
-    ExpType expType;
-    bool isArray;
-    int size;
-    bool isStatic;
-    bool isUsed;
-    bool isInit;
-    bool isConst;
 } TreeNode;
 
 TreeNode *newDeclNode(DeclKind kind,
@@ -137,11 +151,15 @@ TreeNode *newExpNode(ExpKind kind,
                      TreeNode *c1 = NULL,
                      TreeNode *c2 = NULL);
 
-void printTree(TreeNode *node,int indentLevel);
-void printTypedTree(TreeNode *node, int indentLevel, bool memPrintFlag);
-void dumpNode(TreeNode *node);
 TreeNode *addSibling(TreeNode *t, TreeNode *s);
+
+void exprToStr(ExpType type, char *string);
+void scopeToStr(ScopeKind scope, char *string);
+void displayTree(TreeNode *node,int indent);
+void displayTypedTree(TreeNode *node,int indent, bool displayMemory);
+void dumpNode(TreeNode *node);
 void setType(TreeNode *t, ExpType type, bool isStatic);
-void convertExpTypeToString(ExpType type, char *string);
-void printSpaces(int indentLevel);
+void exprToStr(ExpType type, char *string);
+void printSpaces(int indent);
+
 #endif

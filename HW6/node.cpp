@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void convertExpTypeToString(ExpType type, char *string);
-void convertScopeKindToString(ScopeKind scope, char *string);
+extern int ERROR_COUNT;
+
 TreeNode *newDeclNode(DeclKind kind, ExpType type, TokenData *token, TreeNode *c0, TreeNode *c1, TreeNode *c2)
 {
     TreeNode *treeNode = new TreeNode;
@@ -33,7 +33,7 @@ TreeNode *newDeclNode(DeclKind kind, ExpType type, TokenData *token, TreeNode *c
     treeNode->isUsed = false;
     treeNode->isIo = false;
     treeNode->scope = None;
-    treeNode->size = -99;
+    treeNode->size = -1;
     treeNode->attrSet = false;
 
     return treeNode;
@@ -111,11 +111,11 @@ TreeNode *newExpNode(ExpKind kind, TokenData *token, TreeNode *c0, TreeNode *c1,
     return treeNode;
 }
 
-void printSpaces(int indentLevel)
+void printSpaces(int indent)
 {
-    if (indentLevel != 0)
+    if (indent > 0)
     {
-        for (int i = 0; i < indentLevel; i++)
+        for (int i = 0; i < indent; i++)
         {
             printf(".");
             printf("   ");
@@ -123,653 +123,101 @@ void printSpaces(int indentLevel)
     }
 }
 
-void printTree(TreeNode *node, int indentLevel)
-{
-    char typing[64];
-    int sibling_count = 1;
-    while (node != NULL)
-    {
-        convertExpTypeToString(node->expType, typing);
-
-        if (node->nodekind == StmtK)
-        {
-            switch (node->subkind.stmt)
-            {
-            case NullK:
-                printf("NULL\n");
-                break;
-            case IfK:
-                printf("If [line: %d]\n", node->lineno);
-                break;
-            case WhileK:
-                printf("While [line: %d]\n", node->lineno);
-                break;
-            case ForK:
-                printf("For [line: %d]\n", node->lineno);
-                break;
-            case CompoundK:
-                printf("Compound [line: %d]\n", node->lineno);
-                break;
-            case ReturnK:
-                printf("Return [line: %d]\n", node->lineno);
-                break;
-            case BreakK:
-                printf("Break [line: %d]\n", node->lineno);
-                break;
-            case RangeK:
-                printf("Range [line: %d]\n", node->lineno);
-                break;
-
-            default:
-                printf("Unknown stmtK subkind \n");
-                break;
-            }
-        }
-        else if (node->nodekind == ExpK)
-        {
-            switch (node->subkind.exp)
-            {
-            case OpK:
-                if (node->isOp && node->op == CHSIGN)
-                {
-                    printf("Op: CHSIGN [line: %d]\n", node->lineno);
-                }
-                else if (node->isOp && node->op == SIZEOF)
-                {
-                    printf("Op: SIZEOF [line: %d]\n", node->lineno);
-                }
-                else
-                    printf("Op: %s [line: %d]\n", node->attr.string, node->lineno);
-                break;
-            case ConstantK:
-                if (strcmp(typing, "char") == 0)
-                {
-                    if (node->isArray)
-                    {
-                        printf("Const is array of type %s: \"%s\" [line: %d]\n", typing, node->attr.string, node->lineno);
-                    }
-                    else
-                        printf("Const of type %s: '%c' [line: %d]\n", typing, node->attr.value, node->lineno);
-                }
-                else if (strcmp(typing, "bool") == 0)
-                {
-                    printf("Const of type %s: %s [line: %d]\n", typing, node->attr.value ? "true" : "false", node->lineno);
-                }
-                else
-                    printf("Const of type %s: %d [line: %d]\n", typing, node->attr.value, node->lineno);
-                break;
-            case IdK:
-                printf("Id: %s [line: %d]\n", node->attr.name, node->lineno);
-                break;
-            case AssignK:
-                printf("Assign: %s [line: %d]\n", node->attr.string, node->lineno);
-                break;
-            case InitK:
-                printf("Init:\n");
-                break;
-            case CallK:
-                printf("Call: %s [line: %d]\n", node->attr.name, node->lineno);
-                break;
-            default:
-                printf("Unknown ExpK Subkind\n");
-                break;
-            }
-        }
-        else if (node->nodekind == DeclK)
-        {
-            switch (node->subkind.decl)
-            {
-            case VarK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName Vark\n");
-                }
-
-                if (node->isArray)
-                    printf("Var: %s is array of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                else
-                    printf("Var: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                break;
-            case FuncK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName funck\n");
-                    break;
-                }
-                printf("Func: %s returns type %s [line: %d]\n", node->attr.string, typing, node->lineno);
-                break;
-            case ParamK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName Paramk\n");
-                    break;
-                }
-
-                if (node->isArray)
-                    printf("Parm: %s is array of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                else
-                    printf("Parm: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                break;
-            default:
-                printf("Unknown Declk subKind\n");
-                break;
-            }
-        }
-        else
-            printf("Unknown node kind\n");
-
-        for (int i = 0; i < MAXCHILDREN; i++)
-        {
-            if (node->child[i] != NULL)
-            {
-                printSpaces(indentLevel + 1);
-                printf("Child: %d ", i);
-                printTree(node->child[i], indentLevel + 1);
-            }
-        }
-
-        if (node->sibling != NULL)
-        {
-            printSpaces(indentLevel);
-            printf("Sibling: %d ", sibling_count++);
-            node = node->sibling;
-        }
-        else
-            node = node->sibling;
-    }
-}
-
-void printTypedTree(TreeNode *node, int indentLevel, bool memPrintFlag)
-{
-    char typing[64];
-    char scoping[64];
-    int sibling_count = 1;
-    while (node != NULL)
-    {
-        convertExpTypeToString(node->expType, typing);
-        convertScopeKindToString(node->scope, scoping);
-
-        if (node->nodekind == StmtK)
-        {
-            switch (node->subkind.stmt)
-            {
-            case NullK:
-                printf("NULL\n");
-                break;
-            case IfK:
-                printf("If [line: %d]\n", node->lineno);
-                break;
-            case WhileK:
-                printf("While [line: %d]\n", node->lineno);
-                break;
-            case ForK:
-                if (memPrintFlag)
-                {
-                    printf("For [mem: %s loc: %d size: %d] [line: %d]\n",
-                           scoping,
-                           node->loc,
-                           node->size,
-                           node->lineno);
-                } 
-                else
-                    printf("For [line: %d]\n", node->lineno);
-                break;
-            case CompoundK:
-                if (memPrintFlag)
-                {
-                    printf("Compound [mem: %s loc: %d size: %d] [line: %d]\n",
-                           scoping,
-                           node->loc,
-                           node->size,
-                           node->lineno);
-                }
-                else
-                {
-                    printf("Compound [line: %d]\n",
-                           node->lineno);
-                }
-
-                break;
-            case ReturnK:
-                printf("Return [line: %d]\n", node->lineno);
-                break;
-            case BreakK:
-                printf("Break [line: %d]\n", node->lineno);
-                break;
-            case RangeK:
-                printf("Range [line: %d]\n", node->lineno);
-                break;
-
-            default:
-                printf("Unknown stmtK subkind \n");
-                break;
-            }
-        }
-        else if (node->nodekind == ExpK)
-        {
-            switch (node->subkind.exp)
-            {
-            case OpK:
-                if (node->isOp && node->op == CHSIGN)
-                {
-                    if (node->expType == UndefinedType)
-                    {
-                        printf("Op: chsign of undefined type [line: %d]\n", node->lineno);
-                    }
-                    else
-                        printf("Op: chsign of type %s [line: %d]\n", typing, node->lineno);
-                }
-                else if (node->isOp && node->op == SIZEOF)
-                {
-                    if (node->expType == UndefinedType)
-                    {
-                        printf("Op: sizeof of undefined type [line: %d]\n", node->lineno);
-                    }
-                    else
-                        printf("Op: sizeof of type %s [line: %d]\n", typing, node->lineno);
-                }
-                else
-                {
-                    if (node->expType == UndefinedType)
-                    {
-                        printf("Op: %s of undefined type [line: %d]\n", node->attr.string, node->lineno);
-                    }
-                    else
-                        printf("Op: %s of type %s [line: %d]\n", node->attr.string, typing, node->lineno);
-                }
-                break;
-            case ConstantK:
-                if (strcmp(typing, "char") == 0)
-                {
-                    if (memPrintFlag)
-                    {
-                        if (node->isArray)
-                        {
-                            printf("Const \"%s\" of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.string,
-                                   typing,
-                                   scoping,
-                                   node->loc - 1,
-                                   node->size,
-                                   node->lineno);
-                        }
-                        else
-                            printf("Const '%c' of type %s [line: %d]\n", node->attr.value, typing, node->lineno);
-                    }
-                    else
-                    {
-                        if (node->isArray)
-                        {
-                            printf("Const is array \"%s\" of type %s [line: %d]\n", node->attr.string, typing, node->lineno);
-                        }
-                        else
-                            printf("Const '%c' of type %s [line: %d]\n", node->attr.value, typing, node->lineno);
-                    }
-                }
-                else if (strcmp(typing, "bool") == 0)
-                {
-                    printf("Const %s of type %s [line: %d]\n", node->attr.value ? "true" : "false", typing, node->lineno);
-                }
-                else
-                    printf("Const %d of type %s [line: %d]\n", node->attr.value, typing, node->lineno);
-                break;
-            case IdK:
-                if (memPrintFlag)
-                {
-                    if (!node->isArray)
-                    {
-                        if (node->expType == UndefinedType)
-                        {
-                            printf("Id: %s of undefined type [line: %d]\n", node->attr.name, node->lineno);
-                        }
-                        else if(node->scope == LocalStatic)
-                        {
-                            printf("Id: %s of static type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc,
-                                   node->size,
-                                   node->lineno);
-                        }
-                        else
-                            printf("Id: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc,
-                                   node->size,
-                                   node->lineno);
-                    }
-                    else
-                    {
-                        if (node->scope == LocalStatic)
-                        {
-                            printf("Id: %s of static array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc - 1,
-                                   node->size,
-                                   node->lineno);
-                        }
-                        else if (node->scope == Parameter)
-                        {
-                            printf("Id: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc,
-                                   node->size,
-                                   node->lineno);
-                        }
-                        else
-                        {
-                            printf("Id: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc - 1,
-                                   node->size,
-                                   node->lineno);
-                        }
-                    }
-                }
-                else
-                {
-                    if (node->expType == UndefinedType)
-                    {
-                        printf("Id: %s of undefined type [line: %d]\n", node->attr.name, node->lineno);
-                    }
-                    else
-                        printf("Id: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                }
-
-                break;
-            case AssignK:
-                if (memPrintFlag)
-                {
-                    if (node->isArray)
-                    {
-                        printf("Assign: %s of array of type %s [line: %d]\n",
-                               node->attr.string,
-                               typing,
-                               node->lineno);
-                    }
-                    else
-                    {
-                        printf("Assign: %s of type %s [line: %d]\n",
-                               node->attr.string,
-                               typing,
-                               node->lineno);
-                    }
-                }
-                else
-                {
-                    printf("Assign: %s of type %s [line: %d]\n", node->attr.string, typing, node->lineno);
-                }
-                break;
-            case InitK:
-                printf("Init:\n");
-                break;
-            case CallK:
-                printf("Call: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                break;
-            default:
-                printf("Unknown ExpK Subkind\n");
-                break;
-            }
-        }
-        else if (node->nodekind == DeclK)
-        {
-            switch (node->subkind.decl)
-            {
-            case VarK:
-
-                if (memPrintFlag)
-                {
-                    if (node->attr.name == NULL)
-                    {
-                        printf("internal error NULL REACHED in attrName Vark\n");
-                    }
-
-                    if (node->scope == LocalStatic)
-                    {
-                        if (node->isArray)
-                            printf("Var: %s of static array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc - 1,
-                                   node->size,
-                                   node->lineno);
-                        else
-                            printf("Var: %s of static type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc,
-                                   node->size,
-                                   node->lineno);
-                    }
-                    else
-                    {
-                        if (node->isArray)
-                            printf("Var: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc - 1,
-                                   node->size,
-                                   node->lineno);
-                        else
-                            printf("Var: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                                   node->attr.name,
-                                   typing,
-                                   scoping,
-                                   node->loc,
-                                   node->size,
-                                   node->lineno);
-                    }
-                }
-                else
-                {
-                    if (node->attr.name == NULL)
-                    {
-                        printf("internal error NULL REACHED in attrName Vark\n");
-                    }
-
-                    if (node->isArray)
-                        printf("Var: %s is array of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                    else
-                        printf("Var: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                }
-                break;
-            case FuncK:
-                if (memPrintFlag)
-                {
-                    if (node->attr.name == NULL)
-                    {
-                        printf("internal error NULL REACHED in attrName funck\n");
-                        break;
-                    }
-                    printf("Func: %s returns type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                           node->attr.string,
-                           typing,
-                           scoping,
-                           node->loc,
-                           node->size,
-                           node->lineno);
-                }
-                else
-                {
-                    if (node->attr.name == NULL)
-                    {
-                        printf("internal error NULL REACHED in attrName funck\n");
-                        break;
-                    }
-                    printf("Func: %s returns type %s [line: %d]\n", node->attr.string, typing, node->lineno);
-                }
-
-                break;
-            case ParamK:
-                if (node->attr.name == NULL)
-                {
-                    printf("internal error NULL REACHED in attrName Paramk\n");
-                    break;
-                }
-
-                if (memPrintFlag)
-                {
-                    if (node->isArray)
-                        printf("Parm: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                               node->attr.name,
-                               typing,
-                               scoping,
-                               node->loc,
-                               node->size,
-                               node->lineno);
-                    else
-                        printf("Parm: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
-                               node->attr.name,
-                               typing,
-                               scoping,
-                               node->loc,
-                               node->size,
-                               node->lineno);
-                }
-                else
-                {
-                    if (node->isArray)
-                        printf("Parm: %s is array of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                    else
-                        printf("Parm: %s of type %s [line: %d]\n", node->attr.name, typing, node->lineno);
-                }
-
-                break;
-            default:
-                printf("Unknown Declk subKind\n");
-                break;
-            }
-        }
-        else
-            printf("Unknown node kind\n");
-
-        for (int i = 0; i < MAXCHILDREN; i++)
-        {
-            if (node->child[i] != NULL)
-            {
-                printSpaces(indentLevel + 1);
-                printf("Child: %d  ", i);
-                printTypedTree(node->child[i], indentLevel + 1, memPrintFlag);
-            }
-        }
-
-        if (node->sibling != NULL)
-        {
-            printSpaces(indentLevel);
-            printf("Sibling: %d  ", sibling_count++);
-            node = node->sibling;
-        }
-        else
-            node = node->sibling;
-    }
-}
-
-extern int NUM_ERRORS;
 
 TreeNode *addSibling(TreeNode *t, TreeNode *s)
 {
-    if (s == NULL && NUM_ERRORS == 0)
+    if (s == NULL && ERROR_COUNT == 0)
     {
         printf("ERROR(SYSTEM): never add a NULL to a sibling list.\n");
         exit(1);
     }
+
     if (t != NULL)
     {
         TreeNode *tmp;
-
         tmp = t;
+
         while (tmp->sibling != NULL)
             tmp = tmp->sibling;
+
         tmp->sibling = s;
+
         return t;
     }
     return s;
 }
 
-void setType(TreeNode *t, ExpType type, bool isStatic)
+void setType(TreeNode* t, ExpType type, bool isStatic)
 {
-    while (t)
+    for (TreeNode* current = t; current; current = current->sibling)
     {
-        t->expType = type;
-        t->isStatic = isStatic;
-
-        t = t->sibling;
+        current->expType = type;
+        current->isStatic = isStatic;
     }
 }
-void convertExpTypeToString(ExpType type, char *string)
+
+void exprToStr(ExpType type, char *string)
 {
     switch (type)
     {
-    case Void:
-        strcpy(string, "void");
-        break;
-    case Integer:
-        strcpy(string, "int");
-        break;
-    case Boolean:
-        strcpy(string, "bool");
-        break;
-    case Char:
-        strcpy(string, "char");
-        break;
-    case CharInt:
-        strcpy(string, "charint");
-        break;
-    case Equal:
-        strcpy(string, "Equal");
-        break;
-    case UndefinedType:
-        strcpy(string, "Undefined");
-        break;
-    default:
-        printf("Undefined EXP given to conversion function\n");
-        strcpy(string, "FAILURE");
-        break;
+        case Void:
+            strcpy(string, "void");
+            break;
+        case Integer:
+            strcpy(string, "int");
+            break;
+        case Boolean:
+            strcpy(string, "bool");
+            break;
+        case Char:
+            strcpy(string, "char");
+            break;
+        case CharInt:
+            strcpy(string, "charint");
+            break;
+        case Equal:
+            strcpy(string, "Equal");
+            break;
+        case UndefinedType:
+            strcpy(string, "Undefined");
+            break;
+        default:
+            printf("Undefined EXP given to conversion function\n");
+            strcpy(string, "FAILURE");
+            break;
     }
 }
 
-void convertScopeKindToString(ScopeKind scope, char *string)
+void scopeToStr(ScopeKind scope, char *string)
 {
     switch (scope)
     {
-    case None:
-        strcpy(string, "None");
-        break;
-    case Local:
-        strcpy(string, "Local");
-        break;
-    case Global:
-        strcpy(string, "Global");
-        break;
-    case Parameter:
-        strcpy(string, "Parameter");
-        break;
-    case LocalStatic:
-        strcpy(string, "LocalStatic");
-        break;
-    default:
-        printf("Undefined SCOPE given to conversion function\n");
-        strcpy(string, "FAILURE");
-        break;
+        case None:
+            strcpy(string, "None");
+            break;
+        case Local:
+            strcpy(string, "Local");
+            break;
+        case Global:
+            strcpy(string, "Global");
+            break;
+        case Parameter:
+            strcpy(string, "Parameter");
+            break;
+        case LocalStatic:
+            strcpy(string, "LocalStatic");
+            break;
+        default:
+            printf("Undefined SCOPE given to conversion function\n");
+            strcpy(string, "FAILURE");
+            break;
     }
 }
 
 void dumpNode(treeNode *node)
 {
     char buff[64];
-    convertExpTypeToString(node->expType, buff);
+    exprToStr(node->expType, buff);
     printf("linenumber:%d\n", node->lineno);
     printf("token number: %d\n", node->op);
 
@@ -808,10 +256,10 @@ void dumpNode(treeNode *node)
     else
         printf("is Func: false\n");
 
-    if (node->isInitErrorThrown)
-        printf("isInitErrorThrown: true\n");
+    if (node->isInitError)
+        printf("isInitError: true\n");
     else
-        printf("isInitErrorThrown: false\n");
+        printf("isInitError: false\n");
     if (node->isUsed)
         printf("isUsed: true\n");
     else
@@ -820,4 +268,561 @@ void dumpNode(treeNode *node)
     printf("depth:%d\n", node->depth);
 
     printf("exptype: %s\n\n", buff);
+}
+
+void displayTree(TreeNode *node, int indent)
+{
+    int sibling_count = 1;
+
+    char nodeType[64];
+
+    while (node != NULL)
+    {
+        exprToStr(node->expType, nodeType);
+
+        if (node->nodekind == StmtK)
+        {
+            switch (node->subkind.stmt)
+            {
+                case NullK:
+                    printf("NULL\n");
+                    break;
+                case IfK:
+                    printf("If [line: %d]\n", node->lineno);
+                    break;
+                case WhileK:
+                    printf("While [line: %d]\n", node->lineno);
+                    break;
+                case ForK:
+                    printf("For [line: %d]\n", node->lineno);
+                    break;
+                case CompoundK:
+                    printf("Compound [line: %d]\n", node->lineno);
+                    break;
+                case ReturnK:
+                    printf("Return [line: %d]\n", node->lineno);
+                    break;
+                case BreakK:
+                    printf("Break [line: %d]\n", node->lineno);
+                    break;
+                case RangeK:
+                    printf("Range [line: %d]\n", node->lineno);
+                    break;
+
+                default:
+                    printf("Unknown stmtK subkind \n");
+                    break;
+            }
+        }
+        else if (node->nodekind == ExpK)
+        {
+            switch (node->subkind.exp)
+            {
+                case OpK:
+                    if (node->isOp && node->op == CHSIGN)
+                    {
+                        printf("Op: CHSIGN [line: %d]\n", node->lineno);
+                    }
+                    else if (node->isOp && node->op == SIZEOF)
+                    {
+                        printf("Op: SIZEOF [line: %d]\n", node->lineno);
+                    }
+                    else
+                        printf("Op: %s [line: %d]\n", node->attr.string, node->lineno);
+                    break;
+                case ConstantK:
+                    if (strcmp(nodeType, "char") == 0)
+                    {
+                        if (node->isArray)
+                        {
+                            printf("Const is array of type %s: \"%s\" [line: %d]\n", nodeType, node->attr.string, node->lineno);
+                        }
+                        else
+                            printf("Const of type %s: '%c' [line: %d]\n", nodeType, node->attr.value, node->lineno);
+                    }
+                    else if (strcmp(nodeType, "bool") == 0)
+                    {
+                        printf("Const of type %s: %s [line: %d]\n", nodeType, node->attr.value ? "true" : "false", node->lineno);
+                    }
+                    else
+                        printf("Const of type %s: %d [line: %d]\n", nodeType, node->attr.value, node->lineno);
+                    break;
+                case IdK:
+                    printf("Id: %s [line: %d]\n", node->attr.name, node->lineno);
+                    break;
+                case AssignK:
+                    printf("Assign: %s [line: %d]\n", node->attr.string, node->lineno);
+                    break;
+                case InitK:
+                    printf("Init:\n");
+                    break;
+                case CallK:
+                    printf("Call: %s [line: %d]\n", node->attr.name, node->lineno);
+                    break;
+                default:
+                    printf("Unknown ExpK Subkind\n");
+                    break;
+            }
+        }
+        else if (node->nodekind == DeclK)
+        {
+            switch (node->subkind.decl)
+            {
+                case VarK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName Vark\n");
+                    }
+
+                    if (node->isArray)
+                        printf("Var: %s is array of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    else
+                        printf("Var: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    break;
+                case FuncK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName funck\n");
+                        break;
+                    }
+                    printf("Func: %s returns type %s [line: %d]\n", node->attr.string, nodeType, node->lineno);
+                    break;
+                case ParamK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName Paramk\n");
+                        break;
+                    }
+
+                    if (node->isArray)
+                        printf("Parm: %s is array of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    else
+                        printf("Parm: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    break;
+                default:
+                    printf("Unknown Declk subKind\n");
+                    break;
+            }
+        }
+        else
+            printf("Unknown node kind\n");
+
+        for (int i = 0; i < MAX_CHILDREN; i++)
+        {
+            if (node->child[i] != NULL)
+            {
+                printSpaces(indent + 1);
+                printf("Child: %d ", i);
+                displayTree(node->child[i], indent + 1);
+            }
+        }
+
+        if (node->sibling != NULL)
+        {
+            printSpaces(indent);
+            printf("Sibling: %d ", sibling_count++);
+            node = node->sibling;
+        }
+        else
+            node = node->sibling;
+    }
+}
+
+void displayTypedTree(TreeNode *node, int indent, bool displayMemory)
+{
+    int sibling_count = 1;
+
+    char nodeType[64];
+    char scoping[64];
+
+    while (node != NULL)
+    {
+        exprToStr(node->expType, nodeType);
+        scopeToStr(node->scope, scoping);
+
+        if (node->nodekind == StmtK)
+        {
+            switch (node->subkind.stmt)
+            {
+                case NullK:
+                    printf("NULL\n");
+                    break;
+                case IfK:
+                    printf("If [line: %d]\n", node->lineno);
+                    break;
+                case WhileK:
+                    printf("While [line: %d]\n", node->lineno);
+                    break;
+                case ForK:
+                    if (displayMemory)
+                    {
+                        printf("For [mem: %s loc: %d size: %d] [line: %d]\n",
+                               scoping,
+                               node->loc,
+                               node->size,
+                               node->lineno);
+                    }
+                    else
+                        printf("For [line: %d]\n", node->lineno);
+                    break;
+                case CompoundK:
+                    if (displayMemory)
+                    {
+                        printf("Compound [mem: %s loc: %d size: %d] [line: %d]\n",
+                               scoping,
+                               node->loc,
+                               node->size,
+                               node->lineno);
+                    }
+                    else
+                    {
+                        printf("Compound [line: %d]\n",
+                               node->lineno);
+                    }
+
+                    break;
+                case ReturnK:
+                    printf("Return [line: %d]\n", node->lineno);
+                    break;
+                case BreakK:
+                    printf("Break [line: %d]\n", node->lineno);
+                    break;
+                case RangeK:
+                    printf("Range [line: %d]\n", node->lineno);
+                    break;
+
+                default:
+                    printf("Unknown stmtK subkind \n");
+                    break;
+            }
+        }
+        else if (node->nodekind == ExpK)
+        {
+            switch (node->subkind.exp)
+            {
+                case OpK:
+                    if (node->isOp && node->op == CHSIGN)
+                    {
+                        if (node->expType == UndefinedType)
+                        {
+                            printf("Op: chsign of undefined type [line: %d]\n", node->lineno);
+                        }
+                        else
+                            printf("Op: chsign of type %s [line: %d]\n", nodeType, node->lineno);
+                    }
+                    else if (node->isOp && node->op == SIZEOF)
+                    {
+                        if (node->expType == UndefinedType)
+                        {
+                            printf("Op: sizeof of undefined type [line: %d]\n", node->lineno);
+                        }
+                        else
+                            printf("Op: sizeof of type %s [line: %d]\n", nodeType, node->lineno);
+                    }
+                    else
+                    {
+                        if (node->expType == UndefinedType)
+                        {
+                            printf("Op: %s of undefined type [line: %d]\n", node->attr.string, node->lineno);
+                        }
+                        else
+                            printf("Op: %s of type %s [line: %d]\n", node->attr.string, nodeType, node->lineno);
+                    }
+                    break;
+                case ConstantK:
+                    if (strcmp(nodeType, "char") == 0)
+                    {
+                        if (displayMemory)
+                        {
+                            if (node->isArray)
+                            {
+                                printf("Const \"%s\" of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.string,
+                                       nodeType,
+                                       scoping,
+                                       node->loc - 1,
+                                       node->size,
+                                       node->lineno);
+                            }
+                            else
+                                printf("Const '%c' of type %s [line: %d]\n", node->attr.value, nodeType, node->lineno);
+                        }
+                        else
+                        {
+                            if (node->isArray)
+                            {
+                                printf("Const is array \"%s\" of type %s [line: %d]\n", node->attr.string, nodeType, node->lineno);
+                            }
+                            else
+                                printf("Const '%c' of type %s [line: %d]\n", node->attr.value, nodeType, node->lineno);
+                        }
+                    }
+                    else if (strcmp(nodeType, "bool") == 0)
+                    {
+                        printf("Const %s of type %s [line: %d]\n", node->attr.value ? "true" : "false", nodeType, node->lineno);
+                    }
+                    else
+                        printf("Const %d of type %s [line: %d]\n", node->attr.value, nodeType, node->lineno);
+                    break;
+                case IdK:
+                    if (displayMemory)
+                    {
+                        if (!node->isArray)
+                        {
+                            if (node->expType == UndefinedType)
+                            {
+                                printf("Id: %s of undefined type [line: %d]\n", node->attr.name, node->lineno);
+                            }
+                            else if(node->scope == LocalStatic)
+                            {
+                                printf("Id: %s of static type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc,
+                                       node->size,
+                                       node->lineno);
+                            }
+                            else
+                                printf("Id: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc,
+                                       node->size,
+                                       node->lineno);
+                        }
+                        else
+                        {
+                            if (node->scope == LocalStatic)
+                            {
+                                printf("Id: %s of static array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc - 1,
+                                       node->size,
+                                       node->lineno);
+                            }
+                            else if (node->scope == Parameter)
+                            {
+                                printf("Id: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc,
+                                       node->size,
+                                       node->lineno);
+                            }
+                            else
+                            {
+                                printf("Id: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc - 1,
+                                       node->size,
+                                       node->lineno);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (node->expType == UndefinedType)
+                        {
+                            printf("Id: %s of undefined type [line: %d]\n", node->attr.name, node->lineno);
+                        }
+                        else
+                            printf("Id: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    }
+
+                    break;
+                case AssignK:
+                    if (displayMemory)
+                    {
+                        if (node->isArray)
+                        {
+                            printf("Assign: %s of array of type %s [line: %d]\n",
+                                   node->attr.string,
+                                   nodeType,
+                                   node->lineno);
+                        }
+                        else
+                        {
+                            printf("Assign: %s of type %s [line: %d]\n",
+                                   node->attr.string,
+                                   nodeType,
+                                   node->lineno);
+                        }
+                    }
+                    else
+                    {
+                        printf("Assign: %s of type %s [line: %d]\n", node->attr.string, nodeType, node->lineno);
+                    }
+                    break;
+                case InitK:
+                    printf("Init:\n");
+                    break;
+                case CallK:
+                    printf("Call: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    break;
+                default:
+                    printf("Unknown ExpK Subkind\n");
+                    break;
+            }
+        }
+        else if (node->nodekind == DeclK)
+        {
+            switch (node->subkind.decl)
+            {
+                case VarK:
+
+                    if (displayMemory)
+                    {
+                        if (node->attr.name == NULL)
+                        {
+                            printf("internal error NULL REACHED in attrName Vark\n");
+                        }
+
+                        if (node->scope == LocalStatic)
+                        {
+                            if (node->isArray)
+                                printf("Var: %s of static array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc - 1,
+                                       node->size,
+                                       node->lineno);
+                            else
+                                printf("Var: %s of static type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc,
+                                       node->size,
+                                       node->lineno);
+                        }
+                        else
+                        {
+                            if (node->isArray)
+                                printf("Var: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc - 1,
+                                       node->size,
+                                       node->lineno);
+                            else
+                                printf("Var: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                       node->attr.name,
+                                       nodeType,
+                                       scoping,
+                                       node->loc,
+                                       node->size,
+                                       node->lineno);
+                        }
+                    }
+                    else
+                    {
+                        if (node->attr.name == NULL)
+                        {
+                            printf("internal error NULL REACHED in attrName Vark\n");
+                        }
+
+                        if (node->isArray)
+                            printf("Var: %s is array of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                        else
+                            printf("Var: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    }
+                    break;
+                case FuncK:
+                    if (displayMemory)
+                    {
+                        if (node->attr.name == NULL)
+                        {
+                            printf("internal error NULL REACHED in attrName funck\n");
+                            break;
+                        }
+                        printf("Func: %s returns type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                               node->attr.string,
+                               nodeType,
+                               scoping,
+                               node->loc,
+                               node->size,
+                               node->lineno);
+                    }
+                    else
+                    {
+                        if (node->attr.name == NULL)
+                        {
+                            printf("internal error NULL REACHED in attrName funck\n");
+                            break;
+                        }
+                        printf("Func: %s returns type %s [line: %d]\n", node->attr.string, nodeType, node->lineno);
+                    }
+
+                    break;
+                case ParamK:
+                    if (node->attr.name == NULL)
+                    {
+                        printf("internal error NULL REACHED in attrName Paramk\n");
+                        break;
+                    }
+
+                    if (displayMemory)
+                    {
+                        if (node->isArray)
+                            printf("Parm: %s of array of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                   node->attr.name,
+                                   nodeType,
+                                   scoping,
+                                   node->loc,
+                                   node->size,
+                                   node->lineno);
+                        else
+                            printf("Parm: %s of type %s [mem: %s loc: %d size: %d] [line: %d]\n",
+                                   node->attr.name,
+                                   nodeType,
+                                   scoping,
+                                   node->loc,
+                                   node->size,
+                                   node->lineno);
+                    }
+                    else
+                    {
+                        if (node->isArray)
+                            printf("Parm: %s is array of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                        else
+                            printf("Parm: %s of type %s [line: %d]\n", node->attr.name, nodeType, node->lineno);
+                    }
+
+                    break;
+                default:
+                    printf("Unknown Declk subKind\n");
+                    break;
+            }
+        }
+        else
+            printf("Unknown node kind\n");
+
+        for (int i = 0; i < MAX_CHILDREN; i++)
+        {
+            if (node->child[i] != NULL)
+            {
+                printSpaces(indent + 1);
+                printf("Child: %d  ", i);
+                displayTypedTree(node->child[i], indent + 1, displayMemory);
+            }
+        }
+
+        if (node->sibling != NULL)
+        {
+            printSpaces(indent);
+            printf("Sibling: %d  ", sibling_count++);
+            node = node->sibling;
+        }
+        else
+            node = node->sibling;
+    }
 }

@@ -480,8 +480,8 @@ int main(int argc, char *argv[])
     bool printflag = false;
     bool errorflag = false;
     extern int optind;
-    extern int NUM_WARNINGS;
-    extern int NUM_ERRORS;
+    extern int WARNING_COUNT;
+    extern int ERROR_COUNT;
     while(1)
     {
         while((c = ourGetopt(argc,argv,(char*)"Ppd")) != -1)
@@ -510,9 +510,9 @@ int main(int argc, char *argv[])
             }
             else {
                 printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", argv[optind]);
-                NUM_ERRORS++;
-                printf("Number of warnings: %d\n",NUM_WARNINGS);
-                printf("Number of errors: %d\n",NUM_ERRORS);
+                ERROR_COUNT++;
+                printf("Number of warnings: %d\n",WARNING_COUNT);
+                printf("Number of errors: %d\n",ERROR_COUNT);
 
                 exit(1);
             }
@@ -537,15 +537,15 @@ int main(int argc, char *argv[])
       if( (tmpLookupNode == NULL || tmpLookupNode->child[0] != NULL) || !tmpLookupNode->isFunc)
       {
         
-        printf("ERROR(LINKER): A function named 'main()' must be defined.\n");
-        NUM_ERRORS++;
+        printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
+        ERROR_COUNT++;
       }
 
-        if(NUM_ERRORS == 0)
-          printTypedTree(syntaxTree,0);
+        if(ERROR_COUNT == 0)
+          displayTypedTree(syntaxTree,0);
 
-      printf("Number of warnings: %d\n",NUM_WARNINGS);
-      printf("Number of errors: %d\n",NUM_ERRORS);
+      printf("Number of warnings: %d\n",WARNING_COUNT);
+      printf("Number of errors: %d\n",ERROR_COUNT);
 
     }
     return 0;

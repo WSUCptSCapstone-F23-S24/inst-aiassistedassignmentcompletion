@@ -10,16 +10,9 @@ int curline = 1;
 
 static int setValue(int linenum, int tokenclass, char * tokenstr)
 {
-    yylval.tokenData = new TokenData;               // declare the token that will be returned
-    yylval.tokenData->tokenclass = tokenclass;      // record the token's class
-    yylval.tokenData->linenum = linenum;            // record what line the token was found on
-    yylval.tokenData->tokenstr = strdup(tokenstr);  // record the token's literal string
-
-    std::string s; // used to construct a stringconst
-    int l; // used for storing the length of stringconst
-
-    // determine what to do based on the class of token
-    switch (tokenclass) {
+    yylval.tokenData = new TokenData;                   yylval.tokenData->tokenclass = tokenclass;          yylval.tokenData->linenum = linenum;                yylval.tokenData->tokenstr = strdup(tokenstr);
+    std::string s;     int l;
+        switch (tokenclass) {
 
         case ID:
             yylval.tokenData->svalue = strdup(tokenstr);
@@ -28,18 +21,13 @@ static int setValue(int linenum, int tokenclass, char * tokenstr)
         case STRINGCONST:
             s = std::string();
 
-            // record the length of the string
-            l = strlen(tokenstr);
+                        l = strlen(tokenstr);
 
-            // loop through string (bounds are clipped by 1
-            // on each side so as to ignore the quote characters
-            for (int i = 1; i < l - 1; i++) {
+                                    for (int i = 1; i < l - 1; i++) {
                 if (tokenstr[i] == '\\') {
-                    // escaped character
 
                     if (i+1 < l) {
-                        // safe to peek next spot
-                        switch(tokenstr[i+1]) {
+                                                switch(tokenstr[i+1]) {
                             case 'n': s += '\n'; break;
                             case '0': break;
                             case '\\': s += '\\'; break;
@@ -47,24 +35,20 @@ static int setValue(int linenum, int tokenclass, char * tokenstr)
                         }
                         
                     } else {
-                        // "stuff\" edge case
-                        printf("BIGOOPS in parser.l. this should never have been matched as a valid string\n");
+                                                printf("BIGOOPS in parser.l. this should never have been matched as a valid string\n");
                     }
                     i++;
                 } else {
-                    // not an escaped character
-                    s += tokenstr[i];
+                                        s += tokenstr[i];
                 }
             }
             yylval.tokenData->svalue = new char[s.length()];
 
-            // copy contents into token
-            for (int i = 0; i < (int)s.length(); i++) {
+                        for (int i = 0; i < (int)s.length(); i++) {
                 yylval.tokenData->svalue[i] = s[i];
             }
 
-            // add terminating character to the string
-            yylval.tokenData->svalue[s.length()] = '\0';
+                        yylval.tokenData->svalue[s.length()] = '\0';
 
             break;
         
@@ -76,29 +60,24 @@ static int setValue(int linenum, int tokenclass, char * tokenstr)
 
             l = strlen(tokenstr) - 2;
             if (l > 1) {
-                // not a literal single character
-                
-                if (tokenstr[1] == '\\') {
-                    // this is an escaped character
 
-                    // if string is more than two characters, issue a warning
-                    if (l > 2) {
+                if (tokenstr[1] == '\\') {
+
+                                        if (l > 2) {
                         printf("WARNING(%d): character is %d characters long and not a single character: '%s'.  The first char will be used.\n", linenum, l, tokenstr);
                     }
                     switch (tokenstr[2]) {
-                        case 'n': yylval.tokenData->cvalue = '\n'; break;
+                        case 'n': yylval.tokenData->charval = '\n'; break;
                         case '0': yylval.tokenData->cvalue = '\0'; break;
                         case '\\': yylval.tokenData->cvalue = '\\'; break;
                         default: yylval.tokenData->cvalue = tokenstr[2];
                     }
                 } else {
-                    // strlen > one, but its not an escaped character
-                    printf("WARNING(%d): character is %d characters long and not a single character: '%s'.  The first char will be used.\n", linenum, l, tokenstr);
+                                        printf("WARNING(%d): character is %d characters long and not a single character: '%s'.  The first char will be used.\n", linenum, l, tokenstr);
                     yylval.tokenData->cvalue = tokenstr[1];
                 }
             } else {
-                // a literal single character
-                yylval.tokenData->cvalue = tokenstr[1];
+                                yylval.tokenData->cvalue = tokenstr[1];
             }
             break; 
 
@@ -106,9 +85,7 @@ static int setValue(int linenum, int tokenclass, char * tokenstr)
             yylval.tokenData->nvalue = strcmp(yytext, "true") == 0 ? 1 : 0;
             break;
 
-        //default:
-            //printf("(setValue) could not parse type %d\n", tokenclass);
-    }
+                        }
     return tokenclass;
 }
 %}

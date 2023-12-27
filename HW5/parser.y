@@ -30,10 +30,7 @@ static char *toUpperString(char *str)
 
 TreeNode *syntaxTree;
 
-
 %}
-
-%define parse.error verbose
 
 %union {
     ExpType expType;
@@ -51,7 +48,6 @@ TreeNode *syntaxTree;
 %token <tokenData> MIN MAX QUESTION SUBASS MULASS DIVASS
 %token <tokenData> MINUS CHSIGN SIZEOF
 
-
 %type <treenode> program declList decl
 
 %type <treenode> varDecl scopedVarDecl varDeclList varDeclInit varDeclId
@@ -61,8 +57,8 @@ TreeNode *syntaxTree;
 %type <treenode> stmt expStmt compoundStmt localDecls stmtList
 %type <treenode> iterRange returnStmt breakStmt
 
-%type <treenode> exp simpleExp andExp unaryRelExp relExp  minMaxExp
-%type <treenode> sumExp  mulExp unaryExp factor mutable immutable
+%type <treenode> exp simpleExp andExp unaryRelExp relExp minMaxExp
+%type <treenode> sumExp mulExp unaryExp factor mutable immutable
 %type <treenode> call args argList constant matched unmatched
 %type <treenode> unmatchedSelectStmt matchedSelectStmt matchedIterStmt unmatchedIterStmt
 
@@ -70,18 +66,13 @@ TreeNode *syntaxTree;
 
 %type <expType> typeSpec
 
-
-
-
 %%
-
 program         : declList {syntaxTree = $1;}
                 ;
 
-declList        : declList decl  {
+declList        : declList decl {
                                    $$ = addSibling($1,$2);
-                                   ;
-                                   }
+                                }
                 | decl {$$ = $1;}
                 ;
 
@@ -89,11 +80,11 @@ decl            : varDecl {$$ = $1;}
                 | funDecl {$$ = $1;}
                 | error {$$ = NULL;}
                 ;
-
 varDecl         : typeSpec varDeclList SEMI { setType($2,$1,false); $$ = $2;}
                 | error varDeclList SEMI {$$ = NULL; yyerrok;}
                 | typeSpec error SEMI {$$ = NULL; yyerrok; yyerrok;}
                 ;
+
 scopedVarDecl   : STATIC typeSpec varDeclList SEMI  { setType($3,$2,true);
                                                     $$=$3;
                                                     yyerrok;
@@ -104,16 +95,17 @@ scopedVarDecl   : STATIC typeSpec varDeclList SEMI  { setType($3,$2,true);
                                             }
                 ;
 
-varDeclList     : varDeclList COMMA varDeclInit   {
-                                                  $$ = addSibling($1,$3); yyerrok;}
+varDeclList     : varDeclList COMMA varDeclInit   {$$ = addSibling($1,$3); yyerrok;}
                 | varDeclInit { $$ = $1; }
                 | varDeclList COMMA error {$$ = NULL;}
                 | error {$$ = NULL;}
                 ;
 
 varDeclInit     : varDeclId {$$ = $1;}
-                | varDeclId COLON simpleExp     {$$ = $1;
-                                                 if($$ != NULL && $3 != NULL)$$->child[0] = $3;}
+                | varDeclId COLON simpleExp {
+                                                $$ = $1;
+                                                if($$ != NULL && $3 != NULL)$$->child[0] = $3;
+                                            }
                 | error COLON simpleExp {$$ = NULL; yyerrok;}
                 ;
 
@@ -342,18 +334,20 @@ assignOp        : ASS                      {$$ = $1;}
                 | DIVASS                   {$$ = $1;}
 
 
-simpleExp       : simpleExp OR andExp                           { $$ = newExpNode(OpK,$2,$1,$3);
-                                                                  $$->attr.string = $2->tokenStr;
-                                                                  $$->attrSet = true;
-                                                                }
+simpleExp       : simpleExp OR andExp {
+                                          $$ = newExpNode(OpK,$2,$1,$3);
+                                          $$->attr.string = $2->tokenStr;
+                                          $$->attrSet = true;
+                                       }
                 | andExp   {$$ = $1;}
                 | simpleExp OR error {$$ = NULL;}
                 ;
 
-andExp          : andExp AND unaryRelExp                        { $$ = newExpNode(OpK,$2,$1,$3);
-                                                                  $$->attr.string = $2->tokenStr;
-                                                                  $$->attrSet = true;
-                                                                }
+andExp          : andExp AND unaryRelExp {
+                                          $$ = newExpNode(OpK,$2,$1,$3);
+                                          $$->attr.string = $2->tokenStr;
+                                          $$->attrSet = true;
+                                         }
                 | unaryRelExp   {$$ = $1;}
                 | andExp AND error {$$ = NULL;}
                 ;
@@ -468,7 +462,7 @@ call            : ID OPEN_PAREN args CLOSE_PAREN    { $$ = newExpNode(CallK,$1,$
                 ;
 
 args            : argList   {$$ = $1;}
-                | {$$ = NULL;}
+                | {$$ = NULL;}/*EMPTY*/
                 ;
 
 argList         : argList COMMA exp     {
@@ -511,11 +505,8 @@ constant        : NUMCONST      { $$ = newExpNode(ConstantK,$1);
                                 }
                 ;
 
-
 %%
 extern int yydebug;
-
-
 
 int main(int argc, char *argv[])
 {
@@ -523,8 +514,8 @@ int main(int argc, char *argv[])
     bool printflag = false;
     bool errorflag = false;
     extern int optind;
-    extern int NUM_WARNINGS;
-    extern int NUM_ERRORS;
+    extern int WARNING_COUNT;
+    extern int ERROR_COUNT;
 
     initErrorProcessing();
 
@@ -555,9 +546,9 @@ int main(int argc, char *argv[])
             else
             {
                 printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", argv[optind]);
-                NUM_ERRORS++;
-                printf("Number of warnings: %d\n",NUM_WARNINGS);
-                printf("Number of errors: %d\n",NUM_ERRORS);
+                ERROR_COUNT++;
+                printf("Number of warnings: %d\n",WARNING_COUNT);
+                printf("Number of errors: %d\n",ERROR_COUNT);
 
                 exit(1);
             }
@@ -574,29 +565,28 @@ int main(int argc, char *argv[])
     yyparse();
     SymbolTable *symTab;
     symTab = new SymbolTable();
-    if(printflag && NUM_ERRORS == 0)
+    if(printflag)
     {
       checkTree2(symTab,syntaxTree,false,NULL);
       treeNode *tmpLookupNode = (treeNode *) symTab->lookupGlobal(std::string("main"));
 
-      if( (tmpLookupNode == NULL || tmpLookupNode->child[0] != NULL) || !tmpLookupNode->isFunc)
+      if((tmpLookupNode == NULL || tmpLookupNode->child[0] != NULL) || !tmpLookupNode->isFunc)
       {
-
         printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
-        NUM_ERRORS++;
+        ERROR_COUNT++;
       }
 
-        if(NUM_ERRORS == 0)
-          printTypedTree(syntaxTree,0);
+        if(ERROR_COUNT == 0)
+          displayTypedTree(syntaxTree,0);
 
-      printf("Number of warnings: %d\n",NUM_WARNINGS);
-      printf("Number of errors: %d\n",NUM_ERRORS);
+      printf("Number of warnings: %d\n",WARNING_COUNT);
+      printf("Number of errors: %d\n",ERROR_COUNT);
 
     }
     else
     {
-        printf("Number of warnings: %d\n",NUM_WARNINGS);
-        printf("Number of errors: %d\n",NUM_ERRORS);
+        printf("Number of warnings: %d\n", WARNING_COUNT);
+        printf("Number of errors: %d\n", ERROR_COUNT);
     }
 
     return 0;

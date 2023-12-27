@@ -1,62 +1,27 @@
 #include "symbolTable.h"
 
-// // // // // // // // // // // // // // // // // // // // 
-//
-// Introduction
-//
-// This symbol table library supplies basic insert and lookup for
-// symbols linked to void * pointers of data. The is expected to use
-// ONLY the SymbolTable class and NOT the Scope class. The Scope class
-// is used by SymbolTable in its implementation.
-//
-// Plenty of room for improvement inlcuding: better debugging setup,
-// passing of refs rather than values and purpose built char *
-// routines, and C support.
-//
-// WARNING: lookup will return NULL pointer if key is not in table.
-// This means the void * cannot have zero as a legal value! Attempting
-// to save a NULL pointer will get a error.
-//
-// A main() is commented out and has testing code in it.
-//
-// Robert Heckendorn   Feb 23, 2021
-//
 
    
-// // // // // // // // // // // // // // // // // // // // 
-//
-// Some sample void * printing routines.   User shoud supply their own.
-// The print routine will print the name of the symbol and then
-// use a user supplied function to print the pointer.
-//
 
-// print nothing about the pointer
 void pointerPrintNothing(void *data)
 {
 }
    
-// print the pointer as a hex address
 void pointerPrintAddr(void *data)
 {
     printf("0x%016llx ", (unsigned long long int)(data));
 }
    
-// print the pointer as a long long int
 void pointerPrintLongInteger(void *data)
 {
     printf("%18lld ", (unsigned long long int)(data));
 }
    
-// print the pointer as a char * string
 void pointerPrintStr(void *data)
 {
     printf("%s ", (char *)(data));
 }
 
-// // // // // // // // // // // // // // // // // // // // 
-//
-// Class: Scope
-//
 
 Scope::Scope(std::string newname) {
     name = newname;
@@ -67,18 +32,15 @@ Scope::Scope(std::string newname) {
 Scope::~Scope() {
 }
 
-// returns char *name of scope
 std::string Scope::scopeName() {
     return name;
 }
 
-// set scope debugging
 void Scope::debug(bool state) {
     debugFlg = state;
 }
 
 
-// print the scope
 void Scope::print(void (*printData)(void *)) {
     printf("Scope: %-15s -----------------\n", name.c_str());
     for (std::map<std::string , void *>::iterator it=symbols.begin(); it!=symbols.end(); it++) {
@@ -90,7 +52,6 @@ void Scope::print(void (*printData)(void *)) {
 }
 
 
-// apply the function to each symbol in this scope
 void Scope::applyToAll(void (*action)(std::string , void *)) {
     for (std::map<std::string , void *>::iterator it=symbols.begin(); it!=symbols.end(); it++) {
         action(it->first, it->second);
@@ -98,7 +59,6 @@ void Scope::applyToAll(void (*action)(std::string , void *)) {
 }
 
 
-// returns true if insert was successful and false if symbol already in this scope
 bool Scope::insert(std::string sym, void *ptr) {
     if (symbols.find(sym) == symbols.end()) {
         if (debugFlg) printf("DEBUG(Scope): insert in \"%s\" the symbol \"%s\".\n",
@@ -133,12 +93,6 @@ bool Scope::debugFlg;
 
 
 
-// // // // // // // // // // // // // // // // // // // // 
-//
-// Class: SymbolTable
-//
-//  This is a stack of scopes that represents a symbol table
-//
 
 SymbolTable::SymbolTable()
 {
@@ -153,14 +107,12 @@ void SymbolTable::debug(bool state)
 }
 
 
-// Returns the number of scopes in the symbol table
 int SymbolTable::depth()
 {
     return stack.size();
 }
 
 
-// print all scopes using data printing func
 void SymbolTable::print(void (*printData)(void *))
 {
     printf("===========  Symbol Table  ===========\n");
@@ -171,15 +123,13 @@ void SymbolTable::print(void (*printData)(void *))
 }
 
 
-// Enter a scope
-void SymbolTable::enter(std::string name)                    
+void SymbolTable::enter(std::string name)
 {
     if (debugFlg) printf("DEBUG(SymbolTable): enter scope \"%s\".\n", name.c_str());
     stack.push_back(new Scope(name));
 }
 
 
-// Leave a scope (not allowed to leave global)
 void SymbolTable::leave()
 {
     if (debugFlg) printf("DEBUG(SymbolTable): leave scope \"%s\".\n", (stack.back()->scopeName()).c_str());
@@ -193,15 +143,12 @@ void SymbolTable::leave()
 }
 
 
-// Lookup a symbol anywhere in the stack of scopes
-// Returns NULL if symbol not found, otherwise it returns the stored void * associated with the symbol
 void * SymbolTable::lookup(std::string sym)
 {
     void *data;
     std::string name;
 
-    data = NULL;  // set even though the scope stack should never be empty
-    for (std::vector<Scope *>::reverse_iterator it=stack.rbegin(); it!=stack.rend(); it++) {
+    data = NULL;      for (std::vector<Scope *>::reverse_iterator it=stack.rbegin(); it!=stack.rend(); it++) {
         data = (*it)->lookup(sym);
         name = (*it)->scopeName();
         if (data!=NULL) break;
@@ -217,8 +164,6 @@ void * SymbolTable::lookup(std::string sym)
 }
 
 
-// Lookup a symbol in the global scope
-// returns NULL if symbol not found, otherwise it returns the stored void * associated with the symbol
 void * SymbolTable::lookupGlobal(std::string sym)
 {
     void *data;
@@ -231,8 +176,6 @@ void * SymbolTable::lookupGlobal(std::string sym)
 }
 
 
-// Insert a symbol into the most recent scope
-// Returns true if insert was successful and false if symbol already in the most recent scope
 bool SymbolTable::insert(std::string sym, void *ptr)
 {
     if (debugFlg) {
@@ -246,8 +189,6 @@ bool SymbolTable::insert(std::string sym, void *ptr)
 }
 
 
-// Insert a symbol into the global scope
-// Returns true is insert was successful and false if symbol already in the global scope
 bool SymbolTable::insertGlobal(std::string sym, void *ptr)
 {
     if (debugFlg) {
@@ -260,16 +201,12 @@ bool SymbolTable::insertGlobal(std::string sym, void *ptr)
 }
 
 
-// Apply function to each simple in the local scope.   The function gets both the
-// string and the associated pointer.
 void SymbolTable::applyToAll(void (*action)(std::string , void *))
 {
     stack[stack.size()-1]->applyToAll(action);
 }
 
 
-// Apply function to each simple in the global scope.   The function gets both the
-// string and the associated pointer.
 void SymbolTable::applyToAllGlobal(void (*action)(std::string , void *))
 {
     stack[0]->applyToAll(action);
@@ -278,10 +215,6 @@ void SymbolTable::applyToAllGlobal(void (*action)(std::string , void *))
 
 
 
-// // // // // // // // // // // // // // // // // // // // 
-//
-// Some tests
-//
 
 
 std::string words[] = {"alfa", "bravo", "charlie", "dog", "echo", "foxtrot", "golf"};
@@ -335,8 +268,7 @@ int main()
 
 
     printf("This is how you might use insert and lookup in your compiler.\n");
-    st.leave();    // second no longer exists
-    st.enter((std::string )"Third");
+    st.leave();        st.enter((std::string )"Third");
     if (st.insert("charlie", (char *)"cat")) printf("success\n"); else  printf("FAIL\n");
     if (st.insert("charlie", (char *)"pig")) printf("success\n"); else  printf("FAIL\n"); 
     if (st.lookup("charlie")) printf("success\n"); else  printf("FAIL\n"); 

@@ -33,7 +33,6 @@ static char *toUpperString(char *str)
 
 TreeNode *syntaxTree;
 
-
 %}
 
 %union {
@@ -41,9 +40,8 @@ TreeNode *syntaxTree;
     TokenData *tokenData;
     TreeNode *treenode;
 }
-
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST 
-%token <tokenData> INT BOOL CHAR IF THEN ELSE WHILE DO FOR TO 
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST
+%token <tokenData> INT BOOL CHAR IF THEN ELSE WHILE DO FOR TO
 %token <tokenData> BY RETURN BREAK STATIC NOT AND OR TRUE FALSE
 %token <tokenData> OPEN_BRACE CLOSE_BRACE OPEN_PAREN CLOSE_PAREN
 %token <tokenData> SEMI COMMA LESS GREATER LEQ GEQ
@@ -52,7 +50,7 @@ TreeNode *syntaxTree;
 %token <tokenData> MIN MAX QUESTION SUBASS MULASS DIVASS
 %token <tokenData> MINUS CHSIGN SIZEOF
 
-%type <treenode> program declList decl 
+%type <treenode> program declList decl
 
 %type <treenode> varDecl scopedVarDecl varDeclList varDeclInit varDeclId
 
@@ -61,12 +59,12 @@ TreeNode *syntaxTree;
 %type <treenode> stmt expStmt compoundStmt localDecls stmtList
 %type <treenode> iterRange returnStmt breakStmt
 
-%type <treenode> exp simpleExp andExp unaryRelExp relExp  minMaxExp  
-%type <treenode> sumExp  mulExp unaryExp factor mutable immutable 
-%type <treenode> call args argList constant matched unmatched 
-%type <treenode> unmatchedSelectStmt matchedSelectStmt matchedIterStmt unmatchedIterStmt 
+%type <treenode> exp simpleExp andExp unaryRelExp relExp  minMaxExp
+%type <treenode> sumExp  mulExp unaryExp factor mutable immutable
+%type <treenode> call args argList constant matched unmatched
+%type <treenode> unmatchedSelectStmt matchedSelectStmt matchedIterStmt unmatchedIterStmt
 
-%type <tokenData> unaryOp relOp sumOp mulOp minMaxOp 
+%type <tokenData> unaryOp relOp sumOp mulOp minMaxOp
 
 %type <expType> typeSpec
 
@@ -74,19 +72,19 @@ TreeNode *syntaxTree;
 
 
 %%
+
 program         : declList {syntaxTree = $1;}
                 ;
 
 declList        : declList decl  {
                                    $$ = addSibling($1,$2);
-                                   }            
+                                   }
                 | decl {$$ = $1;}
                 ;
 
 decl            : varDecl {$$ = $1;}
                 | funDecl {$$ = $1;}
-                ;  
-
+                ;
 varDecl         : typeSpec varDeclList SEMI { setType($2,$1,false); $$ = $2;}
                 ;
 
@@ -95,9 +93,9 @@ scopedVarDecl   : STATIC typeSpec varDeclList SEMI  { setType($3,$2,true);
                                                     }
                 | typeSpec varDeclList SEMI {   setType($2,$1,false);
                                                 $$ = $2;
-                                            } 
+                                            }
 
-                                              ; 
+                                              ;
                 ;
 
 varDeclList     : varDeclList COMMA varDeclInit   {
@@ -129,15 +127,14 @@ typeSpec        : INT {$$ = Integer;}
                 | CHAR {$$ = Char;}
                 ;
 
-
 funDecl         : typeSpec ID OPEN_PAREN params CLOSE_PAREN stmt    {$$ = newDeclNode(FuncK,$1,$2,$4,$6);
                                                                     $$->attr.name = $2->tokenStr;
-                                                                    $$->attrSet = true;                                                                      
-                                                                     
+                                                                    $$->attrSet = true;
+
                                                                     }
                 | ID OPEN_PAREN params CLOSE_PAREN stmt             {$$ = newDeclNode(FuncK,Void,$1,$3,$5);
                                                                     $$->attr.name = $1->tokenStr;
-                                                                    $$->attrSet = true;                                                                     
+                                                                    $$->attrSet = true;
                                                                     }
                 ;
 
@@ -161,12 +158,12 @@ paramIdList     : paramIdList COMMA paramId {
 paramId         : ID                        {$$ = newDeclNode(ParamK,UndefinedType,$1);
                                             $$->attr.name = $1->tokenStr;
                                             $$->attrSet = true;
-                                            $$->isArray = false;                                                
+                                            $$->isArray = false;
                                             }
                 | ID OPEN_BRACK CLOSE_BRACK {$$ = newDeclNode(ParamK,UndefinedType,$1);
                                             $$->attr.name = $1->tokenStr;
-                                            $$->attrSet = true; 
-                                            $$->isArray = true;                                              
+                                            $$->attrSet = true;
+                                            $$->isArray = true;
                                             }
                 ;
 
@@ -207,7 +204,6 @@ stmtList        : stmtList stmt         {
                 | {$$ = NULL;}
                 ;
 
-
 matchedSelectStmt   : IF simpleExp THEN matched ELSE matched    { $$ = newStmtNode(IfK,$1,$2,$4,$6);
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
@@ -228,7 +224,7 @@ unmatchedIterStmt   : WHILE simpleExp DO unmatched              { $$ = newStmtNo
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-                    | FOR ID ASS iterRange DO unmatched         { 
+                    | FOR ID ASS iterRange DO unmatched         {
                                                                   treeNode *node = newDeclNode(VarK,Integer,$2);
                                                                   node->attr.string = $2->tokenStr;
                                                                   node->attrSet = true;
@@ -243,23 +239,22 @@ matchedIterStmt     : WHILE simpleExp DO matched                { $$ = newStmtNo
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-                                                                
-                    | FOR ID ASS iterRange DO matched           { 
+
+                    | FOR ID ASS iterRange DO matched           {
                                                                   treeNode *node = newDeclNode(VarK,Integer,$2);
                                                                   node->attr.string = $2->tokenStr;
                                                                   node->attrSet = true;
-                        
+
                                                                   $$ = newStmtNode(ForK,$1,node,$4,$6);
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-                    ;      
+                    ;
 
 iterRange       : simpleExp TO simpleExp                        { $$ = newStmtNode(RangeK,$2,$1,$3);
                                                                   $$->attr.string = $2->tokenStr;
                                                                   $$->attrSet = true;
                                                                 }
-
                 | simpleExp TO simpleExp BY simpleExp           { $$ = newStmtNode(RangeK,$4,$1,$3,$5);
                                                                   $$->attr.string = $4->tokenStr;
                                                                   $$->attrSet = true;
@@ -281,7 +276,6 @@ breakStmt       : BREAK SEMI                                    { $$ = newStmtNo
                                                                   $$->attrSet = true;
                                                                 }
                 ;
-
 
 exp             : mutable ASS exp                               { $$ = newExpNode(AssignK,$2,$1,$3);
                                                                   $$->attr.string = $2->tokenStr;
@@ -327,7 +321,7 @@ andExp          : andExp AND unaryRelExp                        { $$ = newExpNod
                                                                 }
                 | unaryRelExp   {$$ = $1;}
                 ;
-                
+
 unaryRelExp     : NOT unaryRelExp                               { $$ = newExpNode(OpK,$1,$2);
                                                                   $$->attr.string = $1->tokenStr;
                                                                   $$->attrSet = true;
@@ -403,10 +397,10 @@ factor          : immutable {$$ = $1;}
 mutable         : ID                                            { $$ = newExpNode(IdK,$1);
                                                                   $$->attr.name = $1->tokenStr;
                                                                   $$->attrSet = true;
-                                                                  $$->isArray = false;  
+                                                                  $$->isArray = false;
                                                                 }
-                | ID OPEN_BRACK exp CLOSE_BRACK                 { 
-                                                                  TreeNode * node = newExpNode(IdK,$1); 
+                | ID OPEN_BRACK exp CLOSE_BRACK                 {
+                                                                  TreeNode * node = newExpNode(IdK,$1);
                                                                   node->attr.name = $1->tokenStr;
                                                                   node->attrSet = true;
                                                                   node->isArray = true;
@@ -417,7 +411,7 @@ mutable         : ID                                            { $$ = newExpNod
                                                                 }
                 ;
 
-immutable       : OPEN_PAREN exp CLOSE_PAREN  { $$ = $2;} 
+immutable       : OPEN_PAREN exp CLOSE_PAREN  { $$ = $2;}
                 | call  {$$ = $1;}
                 | constant {$$ = $1;}
                 ;
@@ -453,22 +447,23 @@ constant        : NUMCONST      { $$ = newExpNode(ConstantK,$1);
                                   $$->attr.string = $1->sValue;
                                   $$->attrSet = true;
                                   $$->expType = Char;
-                                  $$->isArray = true; 
+                                  $$->isArray = true;
                                   $$->unionType = string;
                                 }
                 | TRUE          { $$ = newExpNode(ConstantK,$1);
                                   $$->attr.value = $1->nValue;
                                   $$->attrSet = true;
-                                  $$->expType = Boolean; 
+                                  $$->expType = Boolean;
                                   $$->unionType = value;
                                 }
                 | FALSE         { $$ = newExpNode(ConstantK,$1);
                                   $$->attr.value = $1->nValue;
                                   $$->attrSet = true;
                                   $$->expType = Boolean;
-                                  $$->unionType = value; 
+                                  $$->unionType = value;
                                 }
                 ;
+
 %%
 extern int yydebug;
 
@@ -480,8 +475,8 @@ int main(int argc, char *argv[])
     bool printflag = false;
     bool errorflag = false;
     extern int optind;
-    extern int NUM_WARNINGS;
-    extern int NUM_ERRORS;
+    extern int WARNING_COUNT;
+    extern int ERROR_COUNT;
     while(1)
     {
         while((c = ourGetopt(argc,argv,(char*)"Ppd")) != -1)
@@ -508,11 +503,12 @@ int main(int argc, char *argv[])
 
             if ((yyin = fopen(argv[optind], "r"))) {
             }
-            else {
+            else
+            {
                 printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", argv[optind]);
-                NUM_ERRORS++;
-                printf("Number of warnings: %d\n",NUM_WARNINGS);
-                printf("Number of errors: %d\n",NUM_ERRORS);
+                ERROR_COUNT++;
+                printf("Number of warnings: %d\n",WARNING_COUNT);
+                printf("Number of errors: %d\n",ERROR_COUNT);
 
                 exit(1);
             }
@@ -527,7 +523,7 @@ int main(int argc, char *argv[])
         yydebug = 1;
 
     yyparse();
-    SymbolTable *symTab; 
+    SymbolTable *symTab;
     symTab = new SymbolTable();
     if(printflag)
     {
@@ -538,17 +534,22 @@ int main(int argc, char *argv[])
       {
 
         printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
-
-        NUM_ERRORS++;
+        ERROR_COUNT++;
       }
 
-        if(NUM_ERRORS == 0)
-          printTypedTree(syntaxTree,0);
+        if(ERROR_COUNT == 0)
+          displayTypedTree(syntaxTree,0);
 
-      printf("Number of warnings: %d\n",NUM_WARNINGS);
-      printf("Number of errors: %d\n",NUM_ERRORS);
+      printf("Number of warnings: %d\n",WARNING_COUNT);
+      printf("Number of errors: %d\n",ERROR_COUNT);
 
     }
+    else
+    {
+        printf("Number of warnings: %d\n",WARNING_COUNT);
+        printf("Number of errors: %d\n",ERROR_COUNT);
+    }
+
     return 0;
 }
 

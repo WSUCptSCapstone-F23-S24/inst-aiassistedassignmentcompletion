@@ -23,11 +23,11 @@ all:
 
 .PHONY : clean
 clean:
-	@echo "cleaning..."
+
 	rm -f $(BIN) $(OBJS) lex.yy.c parser.tab.c parser.tab.h parser.output *~
 	rm -rf $(TARNAME)
 .PHONY : tar
 tar:
-	@echo "Taring in progress..."
+
 	tar -cvf $(TARNAME) $(SRCS) $(HDRS) makefile 
 	ls -l $(TARNAME)

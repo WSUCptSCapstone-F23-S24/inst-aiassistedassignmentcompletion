@@ -5,35 +5,7 @@
 #include <string>
 #include "yyerror.h"
 
-// // // // // // // // // // // // // // // // // // // //
-//
-// Error message printing
-//
-// Must make messages look nice.  For example:
-// msg = "syntax error, unexpected ',', expecting BOOL or CHAR or INT or ID."
-// becomes (xx marks important data):
-//  0 syntax
-//  1 error,
-//  2 unexpected
-//  3 ',',    xx
-//  4 expecting
-//  5 BOOL    xx
-//  6 or
-//  7 CHAR    xx
-//  8 or
-//  9 INT     xx
-// 10 or
-// 11 ID.     xx
 
-// assumes a string with breakchar separating each element.
-// breakchars will be replaced by null chars: '\0'
-// array of pointers to strings is then returned in
-// the array strs which must be allocated by the user!
-// the number of strings found is returned as a value of
-// the function.  This number is always at least 1.
-// The array is terminated by a NULL so there must be
-// enough room for all the string pointers plus one for the
-// sentinal marker.
 static int split(char *s, char *strs[], char breakchar)
 {
     int num;
@@ -53,19 +25,11 @@ static int split(char *s, char *strs[], char breakchar)
     return num;
 }
 
-// trim off the last character
 static void trim(char *s)
 {
     s[strlen(s) - 1] = '\0';
 }
-// map from string to char * for storing nice translation of
-// internal names for tokens.  Preserves (char *) used by
-// bison.
-static std::map<std::string, char *> niceTokenNameMap; // use an ordered map (not as fast as unordered)
-
-// WARNING: this routine must be called to initialize mapping of
-// (strings returned as error message) --> (human readable strings)
-//
+static std::map<std::string, char *> niceTokenNameMap;
 void initErrorProcessing()
 {
 
@@ -126,8 +90,6 @@ void initErrorProcessing()
     niceTokenNameMap["$end"] = (char *)"end of input";
 }
 
-// looks of pretty printed words for tokens that are
-// not already in single quotes.  It uses the niceTokenNameMap table.
 static char *niceTokenStr(char *tokenName)
 {
     if (tokenName[0] == '\'')
@@ -187,7 +149,7 @@ void yyerror(const char *msg)
     {
         printf("ERROR(%d): Syntax error, unexpected end of input, expecting \"bool\" or \"char\" or \"int\" or identifier.\n",
                line);
-        NUM_ERRORS++;
+        ERROR_COUNT++;
     }
     else
     {
@@ -228,7 +190,7 @@ void yyerror(const char *msg)
         printf(".\n");
         fflush(stdout); // force a dump of the error
 
-        NUM_ERRORS++; // count the number of errors
+        ERROR_COUNT++; // count the number of errors
 
         free(space);
     }

@@ -21,10 +21,8 @@
 %%
 
 \n                  { line_num++; }
-[ \t\r]             ; // Ignoring whitespace
-"/*"                { char c; while((c=input()) != 0) { if(c == '*') { if(input() == '/') break; } if(c == '\n') line_num++; } }
-"//".*\n            { line_num++; }
-\"(\\.|[^\\"])*\"   { yylval = createToken(STRING, 0, yytext); return STRING; }
+[ \t\r]             ; "/*"                { char c; while((c=input()) != 0) { if(c == '*') { if(input() == '/') break; } if(c == '\n') line_num++; } }
+"\"(\\.|[^\\"])*\"   { yylval = createToken(STRING, 0, yytext); return STRING; }
 \'(\\.|[^\\'])*\'   { yylval = createToken(CHAR, (int)yytext[1], yytext); return CHAR; }
 "true"              { yylval = createToken(BOOLCONST, 1, yytext); return BOOLCONST; }
 "false"             { yylval = createToken(BOOLCONST, 0, yytext); return BOOLCONST; }
