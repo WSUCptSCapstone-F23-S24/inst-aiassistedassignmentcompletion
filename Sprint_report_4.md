@@ -3,20 +3,21 @@
 
 ## What's New (User Facing)
 ### AI Team
- * 
+ * The AI team successfully completed the frontend UI development for our database application using the Qt framework, showcasing our proficiency in Qt development and contributing to the overall progress of the project
 
 ### Non-AI Team
  *
 
 ## Work Summary (Developer Facing)
 ### AI Team
+The AI team has achieved a milestone by successfully concluding the frontend UI development for our database application using the Qt framework. The robust frontend design ensures a streamlined user experience, reflecting our commitment to delivering high-quality software solutions.
 
 ### Non-AI Team
-The Non-AI team finished homework 3, which was begun in Sprint 2, along with starting and finishing homeworks 4 through 6. We were able to continuously build up on the knowledge we gained from each of the previous homework assignments to complete homeworks 4 through 6 at a faster pace than the previous sprints. 
+
 
 ## Unfinished Work
 ### AI Team
-
+As part of our ongoing development, we are currently engaged in crafting the database structure for our application, emphasizing data integrity and reliability. Simultaneously, we are diligently working on a Python middleware to handle the submission of queries to the database. These critical components are integral to the application's functionality and performance.
 
 ### Non-AI Team
 N/A, we completed the work given the extension from the professor
@@ -25,8 +26,7 @@ N/A, we completed the work given the extension from the professor
 ## Completed Issues/User Stories
 ### AI Team
 Here are links to the issues that we completed in this sprint:
-
- * h
+ * TO DO
 
 
 
@@ -48,8 +48,9 @@ Here are links to the issues that we completed in this sprint:
  
  ## Incomplete Issues/User Stories
  ### AI Team
+ TO DO
  Here are links to issues we worked on but did not complete in this sprint:
- 
+
  * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/56 <<We have not had enough time between the end of homework 5 and Sprint 3 due date>>
  
 
@@ -58,6 +59,7 @@ Here are links to the issues that we completed in this sprint:
 
 ## Code Files for Review
 ### AI Team
+TO DO
 Please review the following code files, which were actively developed during this sprint, for quality:
  * [HW2](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/AI/hw2)]
 
@@ -72,17 +74,15 @@ Please review the following code files, which were actively developed during thi
 ## Retrospective Summary
 ### AI Team
 Here's what went well:
-  * Homework 2 Completion
-  * Homework 3 Completion
-  * Homework 4 Completion
-  * Homework 5 Completion
- 
+  * Completion of frontend UI
+    
 Here's what we'd like to improve:
-   * Proficiency in understanding ChatGPT's updated limitations 
+   * Our understanding of submitting queries to the database using the frontend we created with QT designer 
   
 Here are changes we plan to implement in the next sprint:
-   * We will begin our new web development course
-   * We will switch to the Non-AI team
+   * We want to start working on the Python middleware
+   * Wa want to start working on developing the database
+   
 ### Non-AI Team
 Here's what went well:
   * Homework 3
