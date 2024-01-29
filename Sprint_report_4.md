@@ -26,7 +26,7 @@ N/A, we completed the work given the extension from the professor
 ## Completed Issues/User Stories
 ### AI Team
 Here are links to the issues that we completed in this sprint:
- * TO DO
+ * [64](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/64)
 
 
 
@@ -51,7 +51,7 @@ Here are links to the issues that we completed in this sprint:
  TO DO
  Here are links to issues we worked on but did not complete in this sprint:
 
- * https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/56 <<We have not had enough time between the end of homework 5 and Sprint 3 due date>>
+ * [65](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/65)
  
 
  ### Non-AI Team
@@ -80,8 +80,9 @@ Here's what we'd like to improve:
    * Our understanding of submitting queries to the database using the frontend we created with QT designer 
   
 Here are changes we plan to implement in the next sprint:
-   * We want to start working on the Python middleware
-   * Wa want to start working on developing the database
+   * We plan to start working on developing the database
+   * We plan to start working on the Python middleware
+
    
 ### Non-AI Team
 Here's what went well:
