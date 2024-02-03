@@ -48,10 +48,7 @@ Here are links to the issues that we completed in this sprint:
  
  ## Incomplete Issues/User Stories
  ### AI Team
- TO DO
- Here are links to issues we worked on but did not complete in this sprint:
-
- * [65](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/65)
+ We were able to complete all the issues that we had assigned for this sprint.
  
 
  ### Non-AI Team
