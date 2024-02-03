@@ -57,7 +57,7 @@ Here are links to the issues that we completed in this sprint:
 ## Code Files for Review
 ### AI Team
 TO DO
-* [UI File] (https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/423_application_frontend.ui)
+* [UI File](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/423_application_frontend.ui)
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
