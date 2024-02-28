@@ -73,11 +73,53 @@ def parseReview():
 
 def parseUser():
     print("Users:")
+    with open('.//yelp_user.JSON', 'r') as f:
+        line = f.readline()
+        while line:
+            data = json.loads(line)
+            user_str = "'" + data['user_id'] + "'," + \
+                       "'" + data['name'] + "'," + \
+                       str(data['review_count']) + "," + \
+                       str(data['yelping_since']) + "," + \
+                       str(data['useful']) + "," + \
+                       str(data['funny']) + "," + \
+                       str(data['cool']) + "," + \
+                       str(data['elite']) + "," + \
+                       str(data['friends']) + "," + \
+                       str(data['fans']) + "," + \
+                       str(data['average_stars']) + "," + \
+                       str(data['compliment_hot']) + "," + \
+                       str(data['compliment_more']) + "," + \
+                       str(data['compliment_profile']) + "," + \
+                       str(data['compliment_cute']) + "," + \
+                       str(data['compliment_list']) + "," + \
+                       str(data['compliment_note']) + "," + \
+                       str(data['compliment_plain']) + "," + \
+                       str(data['compliment_cool']) + "," + \
+                       str(data['compliment_funny']) + "," + \
+                       str(data['compliment_writer']) + "," + \
+                       str(data['compliment_photos'])
+            print(user_str)
+            line = f.readline()
 
 
 def parseCheckin():
     print("Checkin Data:")
+    with open('.//yelp_checkin.JSON', 'r') as f:
+        line = f.readline()
+        while line:
+            data = json.loads(line)
+            business_id = data['business_id']
+            for day, hours in data['time'].items():
+                for hour, count in hours.items():
+                    checkin_str = "'" + business_id + "'," + \
+                                  "'" + day + "','" + hour + "'," + \
+                                  str(count)
+                    print(checkin_str)
+            line = f.readline()
 
 
 parseBusiness()
 parseReview()
+parseUser()
+parseCheckin()
