@@ -44,7 +44,7 @@ Here are links to the issues that we completed in this sprint:
 ## Code Files for Review
 ### AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
- * [JSON Parser](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/JSONParser.py)]
+ * [JSON Parser](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/JSONParser.py)
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
