@@ -34,7 +34,6 @@ Here are links to the issues that we completed in this sprint:
 
  ## Incomplete Issues/User Stories
  ### AI Team
- TO DO
  Here are links to issues we worked on but did not complete in this sprint:
  * [72](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/72)
  * [73](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/73)
@@ -44,7 +43,6 @@ Here are links to the issues that we completed in this sprint:
 
 ## Code Files for Review
 ### AI Team
-TO DO
 Please review the following code files, which were actively developed during this sprint, for quality:
  * [JSON Parser](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/JSONParser.py)]
 
