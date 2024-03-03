@@ -10,7 +10,7 @@
 
 ## Work Summary (Developer Facing)
 ### AI Team
-The AI team has achieved a milestone by successfully concluding the JSON Parser for our database application using python.This development enables us to parse businesses based on a specified state, city, or ZIP code, providing valuable insights into successful businesses in these regions. Furthermore, the parser categorizes these businesses, offering a comprehensive overview of their respective industries. This accomplishment enhances the capabilities of our application, contributing to a more insightful analysis of business data.
+The AI team has achieved a milestone by successfully concluding the JSON Parser for our database application using Python. This development enables us to parse businesses based on a specified state, city, or ZIP code, providing valuable insights into successful businesses in these regions. Furthermore, the parser categorizes these businesses, offering a comprehensive overview of their respective industries. This accomplishment enhances the capabilities of our application, contributing to a more insightful analysis of business data.
 
 ### Non-AI Team
 The Non-AI team finished the development of the UI using the Qt framework. Each part of the UI is complete, awaiting the insertion of the parsed data for the states and zipcodes. We have created a simple user-friendly interface for anyone to use. Each portion of the UI is contained in a Qt groupbox for cleanliness. Each element is labeled with a unique name to prevent potential developer errors during development. The UI is one of the most important aspects of the Yelp application moving forward.  
