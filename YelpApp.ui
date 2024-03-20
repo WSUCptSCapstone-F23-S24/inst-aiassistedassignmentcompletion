@@ -105,7 +105,7 @@
         <string>Zipcode</string>
        </property>
       </widget>
-      <widget class="QTableView" name="cityList">
+      <widget class="QListWidget" name="cityList">
        <property name="geometry">
         <rect>
          <x>115</x>
@@ -115,7 +115,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QTableView" name="zipList">
+      <widget class="QListWidget" name="zipList">
        <property name="geometry">
         <rect>
          <x>225</x>
