@@ -107,9 +107,6 @@ def parse_user_data():
 
     print(count_lines)
 
-    print(count_lines)
-
-
 def parse_checkin_data():
     print("Parsing checkins...")
 
