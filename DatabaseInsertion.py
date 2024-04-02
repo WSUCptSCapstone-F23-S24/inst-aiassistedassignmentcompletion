@@ -105,25 +105,15 @@ with open('data/yelp_user.json', 'r') as file:
             {columns}
         )
     ''')
-
-    # Insert data into the User table
     for line in file:
         entry = json.loads(line)
         placeholders = ', '.join(['?'] * len(entry))
         values = [json.dumps(value) if isinstance(value, (dict, list)) else value for value in entry.values()]
-        
         # Use INSERT OR IGNORE to handle duplicate business_id
         cursor.execute(f'''
             INSERT OR IGNORE INTO User VALUES ({placeholders})
         ''', values)
-# Query and fetch all data from the Business table
 cursor.execute('SELECT * FROM User')
-#data = cursor.fetchall()
-
-# Print the data
-#for row in data:
-#    print(row)
-# Commit the changes and close the connection
 conn.commit()
 
 # Commit the changes
@@ -132,11 +122,47 @@ with open('data/yelp_checkin.JSON', 'r') as file:
     for line in file:
         data = json.loads(line)
         update_checkin_count(count_checkins(data))
+cursor.execute('DROP TABLE IF EXISTS ZipCodeData;')
 
+# Commit changes
+conn.commit()
+with open("data/zipData.sql") as file:
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS zipcodeData (
+        zipcode TEXT PRIMARY KEY,
+        medianIncome INTEGER,
+        meanIncome INTEGER,
+        population INTEGER
+    );
+    ''')
+    conn.commit()
+    
+    for line in file:
+        # Strip newline character and split values by comma
+        line = line[:-2]
+        line = line.replace('(','').replace(')','').replace('\'', '')
+        print(line)
+        values = line.split(',')
+        # Construct the SQL query with placeholders
+        sql_query = "INSERT INTO zipcodeData (zipcode, medianIncome, meanIncome, population) VALUES (?, ?, ?, ?);"
+        # Execute the SQL query with the values from the file
+        cursor.execute(sql_query, values)
+conn.commit()
+cursor.execute('SELECT * FROM zipcodeData')
+conn.commit()
+data = cursor.fetchall()
+
+for row in data:
+    print(row)
+# Execute the SQL query
+try:
+    cursor.execute(sql_query)
+except:
+    print("")
+
+# Commit changes and close connection
+conn.commit()
 
 cursor.execute('SELECT checkin_count FROM Business')
 data = cursor.fetchall()
 conn.close()
-# Print the data
-for row in data:
-    print(row)

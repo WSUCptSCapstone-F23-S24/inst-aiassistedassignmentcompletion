@@ -82,6 +82,14 @@ class Milestone3(QMainWindow):
             try:
                 results = self.executeQuery(sqlstr)
                 self.populateBusinessList(results)
+                self.ui.numBusiness.setText(str(len(results)))
+            except Exception as e:
+                print(f'Error in zip changed: {e}')
+            sqlstr = f"SELECT zipcode, population, meanIncome FROM zipcodeData WHERE zipcode = '{zipcode.text().strip()}';"
+            try:
+                results = self.executeQuery(sqlstr)
+                self.ui.totalPop.setText(str(results[0][1]))
+                self.ui.meanIncome.setText(str(results[0][2]))
             except Exception as e:
                 print(f'Error in zip changed: {e}')
 
@@ -117,7 +125,6 @@ class Milestone3(QMainWindow):
 
         self.checkinavg = round(self.checkinavg / (1.0 * rowCount), 2)
         self.loadCategoriesList(categories, category_count)
-        self.updateStatistics()
 
     def loadCategoriesList(self, categories, category_count):
         self.ui.categoriesList.clear()
@@ -136,16 +143,6 @@ class Milestone3(QMainWindow):
         for row in categories:
             self.ui.categoriesList.addItem(row)
             rowCount += 1
-
-    def updateStatistics(self):
-        zipcode = self.ui.zipList.currentText()
-        state = self.ui.stateList.currentText()
-        sqlstr = f"SELECT COUNT(name) FROM business WHERE postal_code = '{zipcode}';"
-        try:
-            count_results = self.executeQuery(sqlstr)
-            self.ui.numBusiness.setText(str(count_results[0][0]))
-        except Exception as e:
-            print(f'Error in update statistics: {e}')
 
     def categoryChanged(self):
         self.ui.businessList.setRowCount(0)
