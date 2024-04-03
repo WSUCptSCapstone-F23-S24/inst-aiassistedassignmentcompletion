@@ -6,14 +6,17 @@
  * The AI team has completed the development of the database (milestone 3) in Python for our database application, marking a significant milestone in our project.
 
 ### Non-AI Team
- * The Non-AI team has finished development of the User-Interface (UI), using the Qt framework, for our Yelp application. It allows any user to interact with the application, regardless of development knowledge.
+ * The Non-AI team completed milestone 2 
+we also have finished development of the parser and database for our third milestone. The parser reads all of the data in each of the files, connects to our database, and inserts all of the relevant data for our project into it. 
 
 ## Work Summary (Developer Facing)
 ### AI Team
 The AI team has achieved a milestone by successfully concluding the SQL for our database application using Python. This development enables us to query businesses based on a specified state, city, or ZIP code, providing valuable insights into successful businesses in these regions. Furthermore, the database categorizes these businesses, offering a comprehensive overview of their respective industries. This accomplishment enhances the capabilities of our application, contributing to a more insightful analysis of business data.
 
 ### Non-AI Team
-The Non-AI team finished the development of the UI using the Qt framework. Each part of the UI is complete, awaiting the insertion of the parsed data for the states and zipcodes. We have created a simple user-friendly interface for anyone to use. Each portion of the UI is contained in a Qt groupbox for cleanliness. Each element is labeled with a unique name to prevent potential developer errors during development. The UI is one of the most important aspects of the Yelp application moving forward.  
+The Non-AI team made significant significant progress during this sprint. Since we were unable to finish the second milestone before the previous sprint, the team was able to finish a full implementation of a Qt Framework UI with various data. 
+completed a parse and inserting file which traverses each of the files to extract all relevant data. 
+
 
 ## Unfinished Work
 ### AI Team
