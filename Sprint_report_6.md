@@ -1,5 +1,5 @@
 # Sprint 6 Report (3/2/2024 - 4/2/2024)
-## Sprint Video [Link]() RENDERING
+## Sprint Video [Link](https://studio.youtube.com/video/qIdEcB530WM/edit)
 
 ## What's New (User Facing)
 ### AI Team
