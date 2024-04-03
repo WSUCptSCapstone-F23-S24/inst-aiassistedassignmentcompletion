@@ -1,21 +1,20 @@
 # Sprint 6 Report (3/2/2024 - 4/2/2024)
-## Sprint Video [Link]() TODO
+## Sprint Video [Link]() RENDERING
 
 ## What's New (User Facing)
 ### AI Team
  * The AI team has completed the development of the database (milestone 3) in Python for our database application, marking a significant milestone in our project.
 
 ### Non-AI Team
- * The Non-AI team completed milestone 2 
-we also have finished development of the parser and database for our third milestone. The parser reads all of the data in each of the files, connects to our database, and inserts all of the relevant data for our project into it. 
+ * The Non-AI team completed milestone 2 during this sprint. The Qt Framework UI has States, Cities, and Zip Codes for the user to interact with.
+ * The Non-AI team also finished development of a file parser using Python and a database using pgAdmin for our third milestone.
 
 ## Work Summary (Developer Facing)
 ### AI Team
 The AI team has achieved a milestone by successfully concluding the SQL for our database application using Python. This development enables us to query businesses based on a specified state, city, or ZIP code, providing valuable insights into successful businesses in these regions. Furthermore, the database categorizes these businesses, offering a comprehensive overview of their respective industries. This accomplishment enhances the capabilities of our application, contributing to a more insightful analysis of business data.
 
 ### Non-AI Team
-The Non-AI team made significant significant progress during this sprint. Since we were unable to finish the second milestone before the previous sprint, the team was able to finish a full implementation of a Qt Framework UI with various data. 
-completed a parse and inserting file which traverses each of the files to extract all relevant data. 
+The team made significant significant progress during this sprint. Since we were unable to finish the second milestone before the previous sprint, the team was able to finish a full implementation of a Qt Framework UI with various data for user use. The UI populates is populated with states, cities, and zip codes. All of the data has been was successfully parsed with all duplicate elements removed to prevent the UI from showing multiple states, cities, or zip codes. Along with the second milestone, the team has a completed a Python parser which traverses all of the data in the four files. It performs SQL insertion as it reads the data using the psycog2 library to connect to the pgAdmin 4 database. All SQL queries for data insertion, data handling, and database querying are completed. Each query is optimized to the best of our ability to reduce the time taken to insert and retreive data.
 
 
 ## Unfinished Work
@@ -23,7 +22,7 @@ completed a parse and inserting file which traverses each of the files to extrac
 We were unaware that we had a zipcode stats json file, so we still have to complete that for our third milestone.
 
 ### Non-AI Team
-Currently, we are continuing development with parsing all data files into the UI. We are able to parse the input data into the console. Our current development is focusing on parsing the states and zipcodes into the UI.  
+The Non-AI Team has not finished the UI at this time. However, our team is nearly finished, and closing in on testing the projects ability to satisfy and exceed the project requirements.
 
 ## Completed Issues/User Stories
 ### AI Team
@@ -32,8 +31,12 @@ Here are links to the issues that we completed in this sprint:
  
 ### Non-AI Team
 Here are links to the issues that we completed in this sprint:
-* [67](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/67)
+* [66](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/66)
 * [68](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/68)
+* [75](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/75)
+* [76](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/76)
+* [81](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/81)
+* [81](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/81)
 
  ## Incomplete Issues/User Stories
  ### AI Team
@@ -41,7 +44,8 @@ Here are links to the issues that we completed in this sprint:
  * [78](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/78)
  
  ### Non-AI Team
-* [73](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/73)
+* [79](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/79)
+* [80](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/80)
 
 ## Code Files for Review
 ### AI Team
@@ -50,8 +54,10 @@ Please review the following code files, which were actively developed during thi
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
-* [UI](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI)
-* [Yelp](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI)
+* [UI Parsing Script]([https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/script.py))
+* [Yelp UI Linker]([https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/tree/Non-AI](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/YelpApp.py))
+* [Database Create Tables](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/create_tables.sql)
+* [File/Database Parser](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/parseAndInsert.py)
 
 ## Retrospective Summary
 ### AI Team
@@ -69,10 +75,13 @@ Here are changes we plan to implement in the next sprint:
 Here's what went well:
   * Completion of the UI
   * Parsing data files
+  * SQL insert queries
+  * SQL querying the data in the database
+  * SQL query optimization
  
 Here's what we'd like to improve:
-   * Understanding the query process for the UI data 
+   * Our knowledge of the Qt Framework, and how to improve the UI
+   * Further SQL query optimization
   
 Here are changes we plan to implement in the next sprint:
-   * We plan on completing the data insertion to the UI
-   * We also plan on completing the queries to the UI when state and zipcodes are selected
+   * We plan on completing the UI as well as optimizing the SQL statements further 
