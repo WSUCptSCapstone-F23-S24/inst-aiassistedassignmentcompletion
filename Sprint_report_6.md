@@ -36,12 +36,11 @@ Here are links to the issues that we completed in this sprint:
 * [75](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/75)
 * [76](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/76)
 * [81](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/81)
-* [81](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/81)
 
  ## Incomplete Issues/User Stories
  ### AI Team
  Here are links to issues we worked on but did not complete in this sprint:
- * [78](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/78)
+[78](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/78)
  
  ### Non-AI Team
 * [79](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/issues/79)
@@ -50,7 +49,7 @@ Here are links to the issues that we completed in this sprint:
 ## Code Files for Review
 ### AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
- * [Python SQL Middleware](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/middleware-milestone3.py)
+* [Python SQL Middleware](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/AI/middleware-milestone3.py)
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
@@ -75,6 +74,7 @@ Here are changes we plan to implement in the next sprint:
 Here's what went well:
   * Completion of the UI
   * Parsing data files
+  * Database handling
   * SQL insert queries
   * SQL querying the data in the database
   * SQL query optimization
