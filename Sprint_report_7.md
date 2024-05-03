@@ -20,7 +20,7 @@ The Non-AI team managed to make significant progress this sprint. Since we were 
 We were unaware that we had a zipcode stats json file, so we still have to complete that for our third milestone.
 
 ### Non-AI Team
-We are done with all our tasks
+The Non-AI team successfully completed all of the work for this case study.
 
 ## Completed Issues/User Stories
 ### AI Team
@@ -58,10 +58,3 @@ Here's what went well:
 Here's what went well:
   * Completion of Database application using SQL
   * Displaying data on the UI based on input taken
- 
-Here's what we'd like to improve:
-   * Our knowledge of the Qt Framework, and how to improve the UI
-   * Further SQL query optimization
-  
-Here are changes we plan to implement in the next sprint:
-   * We plan on completing the UI as well as optimizing the SQL statements further 
