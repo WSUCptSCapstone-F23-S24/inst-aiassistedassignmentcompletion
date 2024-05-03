@@ -13,14 +13,14 @@
 The AI team has achieved a milestone by successfully concluding the SQL for our database application using Python. The final task we needed to finish as part of our project was displaying the data for each zip code. We obtained the data from the Yelp website, and modified our code to parse the downloaded JSON. From there, we added queries to get the information connected to the selected zip code and display them to the marked labels.
 
 ### Non-AI Team
-The non-ai team managed to make significant progress this sprint. Since we were unable to finish the third milestone before the previous sprint, the team was able to finish a full implementation of a Qt Framework UI with the SQL database. We managed to expand upon our previous work and created a python script which connects the database to the UI and also succefully executes appropiate sql queries based on the input from the UI. 
+The Non-AI team managed to make significant progress this sprint. Since we were unable to finish the third milestone before the previous sprint, the team was able to finish a full implementation of a Qt Framework UI with the SQL database. We managed to expand upon our previous work and created a python script which connects the database to the UI and also succefully executes appropiate sql queries based on the input from the UI. 
  
 ## Unfinished Work
 ### AI Team
 We were unaware that we had a zipcode stats json file, so we still have to complete that for our third milestone.
 
 ### Non-AI Team
-We are dojne with all our tasks
+We are done with all our tasks
 
 ## Completed Issues/User Stories
 ### AI Team
