@@ -1,5 +1,5 @@
 # Sprint 7 Report (4/2/2024 - 5/2/2024)
-## Sprint Video [Link](https://youtu.be/qIdEcB530WM)
+## Sprint Video [Link](https://youtu.be/9HzDBOglyy8)
 
 ## What's New (User Facing)
 ### AI Team
