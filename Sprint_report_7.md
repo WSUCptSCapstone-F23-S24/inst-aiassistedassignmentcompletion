@@ -46,7 +46,7 @@ Please review the following code files, which were actively developed during thi
 
 ### Non-AI Team
 Please review the following code files, which were actively developed during this sprint, for quality:
-* [Milestone 3 script] (https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/milestone3.py)
+* [Milestone 3 script](https://github.com/WSUCptSCapstone-F23-S24/inst-aiassistedassignmentcompletion/blob/Non-AI/milestone3.py)
 
 ## Retrospective Summary
 ### AI Team
