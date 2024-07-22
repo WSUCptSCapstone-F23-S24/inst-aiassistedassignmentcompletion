@@ -1,4 +1,4 @@
-#  INST-AI Assisted Assignment Completion (CPT_S 421, Washington State University)
+#  INST-AI Assisted Assignment Completion 
 
 ## Team Name: INSTACODE
 
