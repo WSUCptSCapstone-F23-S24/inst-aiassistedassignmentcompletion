@@ -15,16 +15,6 @@
 9. Acknowledgments
 10. References
 
-## Team Members:
-- Kumar, Ayush
-- Kinney, Cameron
-- Karaki, Adam
-- Smith, Evan
-
-## Class Information for Fall Semester:
-- Class: CS 445 - Compilers
-- University: University of Idaho
-
 ## Abstract and Motivation:
 
 Recent advances in AI, particularly the emergence of large language models like ChatGPT and Bard, have demonstrated the potential to revolutionize various aspects of the software development process. This project, "AI-Assisted Programming for Compilers," is designed to investigate the extent to which these AI models can facilitate the development of solutions for academic programming assignments in the context of our Compilers class (CS 445) at the University of Idaho.
